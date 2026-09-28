@@ -224,6 +224,7 @@ fun ChecklistPage(
                     Icon(
                         imageVector = MiuixIcons.Add,
                         contentDescription = stringResource(R.string.add_item),
+                        tint = MiuixTheme.colorScheme.onPrimary,
                     )
                 }
             }

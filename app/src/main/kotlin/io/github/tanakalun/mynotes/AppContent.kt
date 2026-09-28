@@ -2,12 +2,8 @@ package io.github.tanakalun.mynotes
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -48,11 +44,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
-import top.yukonga.miuix.kmp.basic.FloatingActionButton
 import top.yukonga.miuix.kmp.basic.FloatingNavigationBar
 import top.yukonga.miuix.kmp.basic.FloatingNavigationBarItem
 import top.yukonga.miuix.kmp.basic.FloatingToolbarDefaults
-import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.NavigationBar
 import top.yukonga.miuix.kmp.basic.NavigationBarItem
 import top.yukonga.miuix.kmp.basic.NavigationItem
@@ -60,10 +54,7 @@ import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.SnackbarDuration
 import top.yukonga.miuix.kmp.basic.SnackbarHost
 import top.yukonga.miuix.kmp.basic.SnackbarHostState
-import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.basic.TextButtonColors
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.Add
 import top.yukonga.miuix.kmp.icon.extended.Notes
 import top.yukonga.miuix.kmp.icon.extended.Settings
 import top.yukonga.miuix.kmp.blur.BlendColorEntry
@@ -78,7 +69,6 @@ import top.yukonga.miuix.kmp.nav.core.rememberNavBackStack
 import top.yukonga.miuix.kmp.nav.core.rememberNavSystemCornerRadius
 import top.yukonga.miuix.kmp.nav.transition.NavSwipeDirection
 import top.yukonga.miuix.kmp.nav.transition.NavTransitions
-import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.springAnimateToPage
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -132,11 +122,12 @@ fun AppContent() {
     ) {
         entry<Route.NotesList>(swipeDismiss = swipeBackDirection) {
             Home(
-                navigator = navigator,
                 navigationItems = navigationItems,
                 mainPagerState = mainPagerState,
                 onEditNote = { id -> navigator.push(Route.NoteEditor(id)) },
                 onEditChecklist = { id -> navigator.push(Route.ChecklistEditor(id)) },
+                onCreateNote = { navigator.push(Route.NoteEditor()) },
+                onCreateChecklist = { navigator.push(Route.ChecklistEditor()) },
                 onAboutClick = { navigator.push(Route.About) },
             )
         }
@@ -188,14 +179,14 @@ fun AppContent() {
 
 @Composable
 private fun Home(
-    navigator: Navigator,
     navigationItems: List<NavigationItem>,
     mainPagerState: MainPagerState,
     onEditNote: (String) -> Unit,
     onEditChecklist: (String) -> Unit,
+    onCreateNote: () -> Unit,
+    onCreateChecklist: () -> Unit,
     onAboutClick: () -> Unit,
 ) {
-    var showNewDialog by remember { mutableStateOf(false) }
     val backdrop = rememberBlurBackdrop()
     val powerSave = isPowerSave()
     val blurActive = SettingsStore.enableBlur && backdrop != null && !powerSave
@@ -301,16 +292,6 @@ private fun Home(
                 floatingPosition = SettingsStore.floatingNavbarPosition,
             )
         },
-        floatingActionButton = {
-            if (mainPagerState.selectedPage == 0) {
-                FloatingActionButton(onClick = { showNewDialog = true }) {
-                    Icon(
-                        imageVector = MiuixIcons.Add,
-                        contentDescription = stringResource(R.string.new_item),
-                    )
-                }
-            }
-        },
     ) { innerPadding ->
         Box(
             modifier = Modifier.fillMaxSize().then(
@@ -326,6 +307,8 @@ private fun Home(
                         innerPadding = innerPadding,
                         onEditNote = onEditNote,
                         onEditChecklist = onEditChecklist,
+                        onCreateNote = onCreateNote,
+                        onCreateChecklist = onCreateChecklist,
                     )
                     1 -> SettingsPage(
                         innerPadding = innerPadding,
@@ -362,51 +345,6 @@ private fun Home(
                         },
                     )
                 }
-            }
-        }
-
-        OverlayDialog(
-            show = showNewDialog,
-            title = stringResource(R.string.new_item),
-            summary = stringResource(R.string.choose_item_type),
-            onDismissRequest = { showNewDialog = false },
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    TextButton(
-                        text = stringResource(R.string.note),
-                        onClick = {
-                            showNewDialog = false
-                            navigator.push(Route.NoteEditor())
-                        },
-                        modifier = Modifier.weight(1f),
-                        colors = TextButtonColors(
-                            color = MiuixTheme.colorScheme.primary,
-                            disabledColor = MiuixTheme.colorScheme.primaryContainer,
-                            textColor = MiuixTheme.colorScheme.onPrimary,
-                            disabledTextColor = MiuixTheme.colorScheme.onPrimaryContainer,
-                        ),
-                    )
-                    TextButton(
-                        text = stringResource(R.string.checklist),
-                        onClick = {
-                            showNewDialog = false
-                            navigator.push(Route.ChecklistEditor())
-                        },
-                        modifier = Modifier.weight(1f),
-                        colors = TextButtonColors(
-                            color = MiuixTheme.colorScheme.primary,
-                            disabledColor = MiuixTheme.colorScheme.primaryContainer,
-                            textColor = MiuixTheme.colorScheme.onPrimary,
-                            disabledTextColor = MiuixTheme.colorScheme.onPrimaryContainer,
-                        ),
-                    )
-                }
-                TextButton(
-                    text = stringResource(R.string.cancel),
-                    onClick = { showNewDialog = false },
-                    modifier = Modifier.fillMaxWidth(),
-                )
             }
         }
     }

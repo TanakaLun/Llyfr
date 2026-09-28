@@ -18,7 +18,7 @@ android {
         minSdk = 33
         targetSdk = 37
         versionCode = 40
-        versionName = "Horizontal"
+        versionName = "1.2.7"
     
     packaging {
         resources {
@@ -48,7 +48,6 @@ android {
     }
 
     buildFeatures {
-        viewBinding = true
         buildConfig = true
         compose = true
     }

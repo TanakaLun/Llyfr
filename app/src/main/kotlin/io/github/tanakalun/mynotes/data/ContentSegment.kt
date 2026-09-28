@@ -27,68 +27,87 @@ sealed class ContentSegment {
 private val IMAGE_MARKER_REGEX = Regex("""!\[.*?\]\((.*?)\)""")
 private val FENCED_CODE_REGEX = Regex("""```(\w*)\n([\s\S]*?)```""")
 
+private class Marker(
+    val start: Int,
+    val end: Int,
+    val segment: ContentSegment,
+    val isImage: Boolean,
+)
+
 fun parseSegmentsFromMarkdown(markdown: String): List<ContentSegment> {
     if (markdown.isBlank()) return listOf(ContentSegment.Text())
 
-    val codeBlockRanges = FENCED_CODE_REGEX.findAll(markdown).map {
-        it.range.first to it.range.last + 1
-    }.toMutableList()
+    val codeRanges = mutableListOf<Pair<Int, Int>>()
+    FENCED_CODE_REGEX.findAll(markdown).forEach { match ->
+        codeRanges.add(match.range.first to match.range.last + 1)
+    }
 
-    val imageRanges = mutableListOf<Pair<Int, Int>>()
+    val markers = mutableListOf<Marker>()
+    FENCED_CODE_REGEX.findAll(markdown).forEach { match ->
+        markers.add(
+            Marker(
+                start = match.range.first,
+                end = match.range.last + 1,
+                segment = ContentSegment.Code(
+                    language = match.groupValues[1],
+                    code = match.groupValues[2].removeSuffix("\n"),
+                ),
+                isImage = false,
+            )
+        )
+    }
     IMAGE_MARKER_REGEX.findAll(markdown).forEach { match ->
         val path = match.groupValues[1]
         if (path.startsWith("/") || path.startsWith("file:")) {
-            imageRanges.add(match.range.first to match.range.last + 1)
+            val range = match.range.first to match.range.last + 1
+            val insideCode = codeRanges.any { range.first >= it.first && range.first < it.second }
+            if (!insideCode) {
+                markers.add(
+                    Marker(
+                        start = range.first,
+                        end = range.second,
+                        segment = ContentSegment.Image(path = path),
+                        isImage = true,
+                    )
+                )
+            }
         }
     }
-
-    val allRanges = (codeBlockRanges + imageRanges).sortedBy { it.first }
+    markers.sortBy { it.start }
 
     val segments = mutableListOf<ContentSegment>()
     var lastEnd = 0
-
-    FENCED_CODE_REGEX.findAll(markdown).forEach { match ->
-        val codeStart = match.range.first
-        val codeEnd = match.range.last + 1
-
-        if (codeStart > lastEnd) {
-            val before = markdown.substring(lastEnd, codeStart)
-            if (before.isNotBlank()) {
-                segments.add(ContentSegment.Text(markdown = before))
-            }
+    var prevWasImage = false
+    markers.forEach { marker ->
+        var chunk = markdown.substring(lastEnd, marker.start)
+        if (prevWasImage && chunk.startsWith("\n")) {
+            chunk = chunk.substring(1)
         }
-
-        val language = match.groupValues[1]
-        val code = match.groupValues[2].removeSuffix("\n")
-        segments.add(ContentSegment.Code(language = language, code = code))
-
-        lastEnd = codeEnd
-    }
-
-    IMAGE_MARKER_REGEX.findAll(markdown).forEach { match ->
-        val path = match.groupValues[1]
-        if (path.startsWith("/") || path.startsWith("file:")) {
-            val imgStart = match.range.first
-            val imgEnd = match.range.last + 1
-
-            if (imgStart > lastEnd) {
-                val before = markdown.substring(lastEnd, imgStart)
-                if (before.isNotBlank()) {
-                    segments.add(ContentSegment.Text(markdown = before))
-                }
-            }
-
-            segments.add(ContentSegment.Image(path = path))
-            lastEnd = imgEnd
+        if (marker.isImage && chunk.endsWith("\n")) {
+            chunk = chunk.dropLast(1)
         }
+        if (chunk.isNotBlank()) {
+            segments.add(ContentSegment.Text(markdown = chunk))
+        }
+        segments.add(marker.segment)
+        lastEnd = marker.end
+        prevWasImage = marker.isImage
     }
-
-    val remaining = markdown.substring(lastEnd)
-    if (remaining.isNotBlank()) {
-        segments.add(ContentSegment.Text(markdown = remaining))
+    var tail = markdown.substring(lastEnd)
+    if (prevWasImage && tail.startsWith("\n")) {
+        tail = tail.substring(1)
+    }
+    if (tail.isNotBlank()) {
+        segments.add(ContentSegment.Text(markdown = tail))
     }
 
     if (segments.isEmpty()) {
+        segments.add(ContentSegment.Text())
+    }
+    if (segments.first() !is ContentSegment.Text) {
+        segments.add(0, ContentSegment.Text())
+    }
+    if (segments.last() !is ContentSegment.Text) {
         segments.add(ContentSegment.Text())
     }
 
@@ -96,17 +115,27 @@ fun parseSegmentsFromMarkdown(markdown: String): List<ContentSegment> {
 }
 
 fun serializeSegmentsToMarkdown(segments: List<ContentSegment>): String {
-    return segments.joinToString("") { segment ->
+    val sb = StringBuilder()
+    segments.forEach { segment ->
         when (segment) {
-            is ContentSegment.Text -> segment.markdown
-            is ContentSegment.Image -> "![image](${segment.path})"
+            is ContentSegment.Text -> {
+                sb.append(segment.markdown)
+            }
+            is ContentSegment.Image -> {
+                if (sb.isNotEmpty()) {
+                    sb.append('\n')
+                }
+                sb.append("![image](${segment.path})")
+                sb.append('\n')
+            }
             is ContentSegment.Code -> {
                 if (segment.language.isNotBlank()) {
-                    "```${segment.language}\n${segment.code}\n```"
+                    sb.append("```${segment.language}\n${segment.code}\n```")
                 } else {
-                    "```\n${segment.code}\n```"
+                    sb.append("```\n${segment.code}\n```")
                 }
             }
         }
     }
+    return sb.toString()
 }

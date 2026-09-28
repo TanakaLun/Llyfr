@@ -30,6 +30,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -39,6 +40,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -144,6 +147,7 @@ fun NoteEditorPage(
     }
 
     var focusedSegmentId by remember { mutableStateOf<String?>(null) }
+    var pendingFocusSegmentId by remember { mutableStateOf<String?>(null) }
 
     fun findSegmentIndex(segmentId: String): Int {
         return segments.indexOfFirst { it.id == segmentId }
@@ -154,42 +158,75 @@ fun NoteEditorPage(
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10)
     ) { uris: List<Uri> ->
-        val insertIndex = focusedSegmentId?.let { findSegmentIndex(it) }?.plus(1) ?: segments.size
-        var offset = 0
-        uris.forEach { uri ->
+        val images = uris.mapNotNull { uri ->
             val path = ImageUtils.copyImageToInternal(context, uri)
-            if (path != null) {
+            if (path == null) null
+            else {
                 val (w, h) = ImageUtils.getImageDimensions(path)
-                segments.add(insertIndex + offset, ContentSegment.Image(path = path, width = w, height = h))
-                offset++
+                ContentSegment.Image(path = path, width = w, height = h)
             }
         }
-        segments.add(insertIndex + offset, ContentSegment.Text())
-    }
+        if (images.isEmpty()) return@rememberLauncherForActivityResult
 
-    fun saveAndBack() {
-        val allMarkdown = buildString {
-            segments.forEach { segment ->
-                when (segment) {
-                    is ContentSegment.Text -> {
-                        val state = richTextStates[segment.id]
-                        append(state?.toMarkdown() ?: segment.markdown)
-                    }
-                    is ContentSegment.Image -> {
-                        append("![image](${segment.path})")
-                    }
-                    is ContentSegment.Code -> {
-                        if (segment.language.isNotBlank()) {
-                            append("```${segment.language}\n${segment.code}\n```")
-                        } else {
-                            append("```\n${segment.code}\n```")
+        val focusedIdx = focusedSegmentId?.let { findSegmentIndex(it) }?.takeIf { it >= 0 }
+
+        var splitBefore: String? = null
+        var splitAfter: String? = null
+        var splitIdx = -1
+        if (focusedIdx != null && focusedIdx < segments.size &&
+            segments[focusedIdx] is ContentSegment.Text
+        ) {
+            val state = richTextStates[(segments[focusedIdx] as ContentSegment.Text).id]
+            if (state != null) {
+                try {
+                    val plain = state.annotatedString.text
+                    val caret = state.selection.max
+                    val nl = plain.indexOf('\n', caret)
+                    val splitPlain = if (nl >= 0) nl + 1 else plain.length
+                    if (splitPlain in 1 until plain.length) {
+                        val full = state.toMarkdown()
+                        val before = state.toMarkdown(TextRange(0, splitPlain))
+                        val after = state.toMarkdown(TextRange(splitPlain, plain.length))
+                        val stripNewlines = { s: String -> s.replace("\n", "") }
+                        if (before.isNotEmpty() && after.isNotEmpty() &&
+                            stripNewlines(full) == stripNewlines(before + after)
+                        ) {
+                            splitBefore = before
+                            splitAfter = after
+                            splitIdx = focusedIdx
                         }
                     }
+                } catch (_: Exception) {
                 }
             }
         }
 
-        val imagePaths = segments.filterIsInstance<ContentSegment.Image>().map { it.path }
+        if (splitIdx >= 0 && splitBefore != null && splitAfter != null) {
+            segments[splitIdx] = (segments[splitIdx] as ContentSegment.Text).copy(markdown = splitBefore)
+            val insertAt = splitIdx + 1
+            images.forEachIndexed { k, image -> segments.add(insertAt + k, image) }
+            val afterSegment = ContentSegment.Text(markdown = splitAfter)
+            segments.add(insertAt + images.size, afterSegment)
+            pendingFocusSegmentId = afterSegment.id
+        } else {
+            val insertIndex = focusedIdx?.plus(1) ?: segments.size
+            images.forEachIndexed { k, image -> segments.add(insertIndex + k, image) }
+            val trailingSegment = ContentSegment.Text()
+            segments.add(insertIndex + images.size, trailingSegment)
+            pendingFocusSegmentId = trailingSegment.id
+        }
+    }
+
+    fun saveAndBack() {
+        val resolved = segments.map { segment ->
+            if (segment is ContentSegment.Text) {
+                segment.copy(markdown = richTextStates[segment.id]?.toMarkdown() ?: segment.markdown)
+            } else {
+                segment
+            }
+        }
+        val allMarkdown = serializeSegmentsToMarkdown(resolved)
+        val imagePaths = resolved.filterIsInstance<ContentSegment.Image>().map { it.path }
 
         if (title.isNotBlank() || allMarkdown.isNotBlank()) {
             val note = existing?.copy(
@@ -334,212 +371,228 @@ fun NoteEditorPage(
                         .verticalScroll(rememberScrollState()),
                 ) {
                     segments.forEachIndexed { index, segment ->
-                        when (segment) {
-                            is ContentSegment.Text -> {
-                                val richState = rememberRichTextState()
-                                var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
-                                val uriHandler = LocalUriHandler.current
-                                val linkColor = MiuixTheme.colorScheme.primary
-                                LaunchedEffect(segment.id, segment.markdown) {
-                                    val currentMd = richState.toMarkdown()
-                                    if (currentMd != segment.markdown) {
-                                        richState.setMarkdown(segment.markdown)
-                                    }
-                                }
-                                LaunchedEffect(segment.id) {
-                                    richTextStates[segment.id] = richState
-                                }
-                                LaunchedEffect(richState, linkColor) {
-                                    richState.config.linkColor = linkColor
-                                }
-                                BasicRichTextEditor(
-                                    state = richState,
-                                    readOnly = readOnly,
-                                    onTextLayout = { textLayoutResult = it },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .onFocusChanged { focusState ->
-                                            if (focusState.isFocused) {
-                                                focusedSegmentId = segment.id
-                                            }
+                        key(segment.id) {
+                            when (segment) {
+                                is ContentSegment.Text -> {
+                                    val richState = rememberRichTextState()
+                                    val focusRequester = remember { FocusRequester() }
+                                    var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+                                    val uriHandler = LocalUriHandler.current
+                                    val linkColor = MiuixTheme.colorScheme.primary
+                                    LaunchedEffect(segment.id, segment.markdown) {
+                                        val currentMd = richState.toMarkdown()
+                                        if (currentMd != segment.markdown) {
+                                            richState.setMarkdown(segment.markdown)
                                         }
-                                        .pointerInput(richState, uriHandler) {
-                                            awaitPointerEventScope {
-                                                var downPos: Offset? = null
-                                                var downAt = 0L
-                                                while (true) {
-                                                    val event =
-                                                        awaitPointerEvent(PointerEventPass.Initial)
-                                                    val change = event.changes.firstOrNull()
-                                                        ?: continue
-                                                    val wasPressed = change.previousPressed
-                                                    val isPressed = change.pressed
-                                                    if (isPressed && !wasPressed) {
-                                                        downPos = change.position
-                                                        downAt = change.uptimeMillis
-                                                    } else if (downPos != null) {
-                                                        val dist =
-                                                            (change.position - downPos).getDistance()
-                                                        if (isPressed) {
-                                                            if (dist > viewConfiguration.touchSlop) {
+                                    }
+                                    LaunchedEffect(segment.id) {
+                                        richTextStates[segment.id] = richState
+                                        if (pendingFocusSegmentId == segment.id) {
+                                            pendingFocusSegmentId = null
+                                            runCatching { focusRequester.requestFocus() }
+                                        }
+                                    }
+                                    LaunchedEffect(richState, linkColor) {
+                                        richState.config.linkColor = linkColor
+                                    }
+                                    BasicRichTextEditor(
+                                        state = richState,
+                                        readOnly = readOnly,
+                                        onTextLayout = { textLayoutResult = it },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .focusRequester(focusRequester)
+                                            .onFocusChanged { focusState ->
+                                                if (focusState.isFocused) {
+                                                    focusedSegmentId = segment.id
+                                                }
+                                            }
+                                            .pointerInput(richState, uriHandler) {
+                                                awaitPointerEventScope {
+                                                    var downPos: Offset? = null
+                                                    var downAt = 0L
+                                                    while (true) {
+                                                        val event =
+                                                            awaitPointerEvent(PointerEventPass.Initial)
+                                                        val change = event.changes.firstOrNull()
+                                                            ?: continue
+                                                        val wasPressed = change.previousPressed
+                                                        val isPressed = change.pressed
+                                                        if (isPressed && !wasPressed) {
+                                                            downPos = change.position
+                                                            downAt = change.uptimeMillis
+                                                        } else if (downPos != null) {
+                                                            val dist =
+                                                                (change.position - downPos).getDistance()
+                                                            if (isPressed) {
+                                                                if (dist > viewConfiguration.touchSlop) {
+                                                                    downPos = null
+                                                                }
+                                                            } else if (wasPressed) {
+                                                                val pos = downPos
                                                                 downPos = null
-                                                            }
-                                                        } else if (wasPressed) {
-                                                            val pos = downPos
-                                                            downPos = null
-                                                            val duration =
-                                                                change.uptimeMillis - downAt
-                                                            if (dist <= viewConfiguration.touchSlop &&
-                                                                duration < viewConfiguration.longPressTimeoutMillis
-                                                            ) {
-                                                                openLinkAtPosition(
-                                                                    state = richState,
-                                                                    layout = textLayoutResult,
-                                                                    position = pos,
-                                                                    uriHandler = uriHandler,
-                                                                )
+                                                                val duration =
+                                                                    change.uptimeMillis - downAt
+                                                                if (dist <= viewConfiguration.touchSlop &&
+                                                                    duration < viewConfiguration.longPressTimeoutMillis
+                                                                ) {
+                                                                    openLinkAtPosition(
+                                                                        state = richState,
+                                                                        layout = textLayoutResult,
+                                                                        position = pos,
+                                                                        uriHandler = uriHandler,
+                                                                    )
+                                                                }
                                                             }
                                                         }
                                                     }
                                                 }
+                                            },
+                                        textStyle = TextStyle(
+                                            fontSize = 16.sp,
+                                            lineHeight = 24.sp,
+                                            color = contentColor,
+                                        ),
+                                        cursorBrush = SolidColor(MiuixTheme.colorScheme.primary),
+                                        decorationBox = @Composable { innerTextField ->
+                                            Box(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                contentAlignment = Alignment.TopStart,
+                                            ) {
+                                                if (richState.annotatedString.isEmpty() && segments.size == 1) {
+                                                    Text(
+                                                        text = stringResource(R.string.start_writing),
+                                                        style = MiuixTheme.textStyles.body1.copy(
+                                                            fontSize = 16.sp,
+                                                            lineHeight = 24.sp,
+                                                            color = contentColor.copy(alpha = 0.7f),
+                                                        ),
+                                                    )
+                                                }
+                                                innerTextField()
                                             }
                                         },
-                                    textStyle = TextStyle(
-                                        fontSize = 16.sp,
-                                        lineHeight = 24.sp,
-                                        color = contentColor,
-                                    ),
-                                    cursorBrush = SolidColor(MiuixTheme.colorScheme.primary),
-                                    decorationBox = @Composable { innerTextField ->
-                                        Box(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            contentAlignment = Alignment.TopStart,
-                                        ) {
-                                            if (richState.annotatedString.isEmpty() && segments.size == 1) {
-                                                Text(
-                                                    text = stringResource(R.string.start_writing),
-                                                    style = MiuixTheme.textStyles.body1.copy(
-                                                        fontSize = 16.sp,
-                                                        lineHeight = 24.sp,
-                                                        color = contentColor.copy(alpha = 0.7f),
-                                                    ),
-                                                )
-                                            }
-                                            innerTextField()
-                                        }
-                                    },
-                                )
-                            }
-                            is ContentSegment.Code -> {
-                                val codeBlockWrap = SettingsStore.codeBlockWrap
-                                val highlighted = remember(segment.code, segment.language) {
-                                    highlightCode(segment.code, segment.language)
+                                    )
                                 }
-                                val codeScrollState = rememberScrollState()
-
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 4.dp)
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(MiuixTheme.colorScheme.surfaceContainer)
-                                        .padding(12.dp),
-                                ) {
-                                    if (segment.language.isNotBlank()) {
-                                        Text(
-                                            text = segment.language,
-                                            style = MiuixTheme.textStyles.footnote1.copy(
-                                                fontSize = 11.sp,
-                                            ),
-                                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                                            modifier = Modifier.padding(bottom = 4.dp),
-                                        )
+                                is ContentSegment.Code -> {
+                                    val codeBlockWrap = SettingsStore.codeBlockWrap
+                                    val highlighted = remember(segment.code, segment.language) {
+                                        highlightCode(segment.code, segment.language)
                                     }
-                                    SelectionContainer {
-                                        if (codeBlockWrap) {
-                                            Text(
-                                                text = highlighted,
-                                                style = TextStyle(
-                                                    fontFamily = FontFamily.Monospace,
-                                                    fontSize = 13.sp,
-                                                    lineHeight = 18.sp,
-                                                    color = contentColor,
-                                                ),
-                                            )
-                                        } else {
-                                            Text(
-                                                text = highlighted,
-                                                style = TextStyle(
-                                                    fontFamily = FontFamily.Monospace,
-                                                    fontSize = 13.sp,
-                                                    lineHeight = 18.sp,
-                                                    color = contentColor,
-                                                ),
-                                                modifier = Modifier.horizontalScroll(codeScrollState),
-                                                maxLines = Int.MAX_VALUE,
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                            is ContentSegment.Image -> {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 4.dp)
-                                        .clip(RoundedCornerShape(12.dp)),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    AsyncImage(
-                                        model = ImageRequest.Builder(context)
-                                            .data(segment.path)
-                                            .crossfade(true)
-                                            .build(),
-                                        contentDescription = stringResource(R.string.note_image),
+                                    val codeScrollState = rememberScrollState()
+    
+                                    Column(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .aspectRatio(
-                                                if (segment.width > 0 && segment.height > 0) {
-                                                    segment.width.toFloat() / segment.height.toFloat()
-                                                } else {
-                                                    16f / 9f
-                                                }
-                                            )
+                                            .padding(vertical = 4.dp)
                                             .clip(RoundedCornerShape(12.dp))
-                                            .clickable {
-                                                navigator.push(Route.ImageViewer(segment.path))
-                                            },
-                                        contentScale = ContentScale.Crop,
-                                    )
-                                    IconButton(
-                                        onClick = {
-                                            if (readOnly) return@IconButton
-                                            val textBefore = segments.getOrNull(index - 1)
-                                            val textAfter = segments.getOrNull(index + 1)
-                                            segments.removeAt(index)
-                                            if (textBefore is ContentSegment.Text && textAfter is ContentSegment.Text) {
-                                                val merged = textBefore.copy(
-                                                    markdown = textBefore.markdown + textAfter.markdown
-                                                )
-                                                segments[index - 1] = merged
-                                                segments.removeAt(index)
-                                            }
-                                        },
-                                        enabled = !readOnly,
-                                        modifier = Modifier
-                                            .align(Alignment.TopEnd)
-                                            .padding(4.dp)
-                                            .size(32.dp)
-                                            .clip(CircleShape)
-                                            .background(Color.Black.copy(alpha = 0.5f)),
+                                            .background(MiuixTheme.colorScheme.surfaceContainer)
+                                            .padding(12.dp),
                                     ) {
-                                        Icon(
-                                            imageVector = MiuixIcons.Delete,
-                                            contentDescription = stringResource(R.string.delete_image),
-                                            tint = Color.White,
-                                            modifier = Modifier.size(18.dp),
-                                        )
+                                        if (segment.language.isNotBlank()) {
+                                            Text(
+                                                text = segment.language,
+                                                style = MiuixTheme.textStyles.footnote1.copy(
+                                                    fontSize = 11.sp,
+                                                ),
+                                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                                                modifier = Modifier.padding(bottom = 4.dp),
+                                            )
+                                        }
+                                        SelectionContainer {
+                                            if (codeBlockWrap) {
+                                                Text(
+                                                    text = highlighted,
+                                                    style = TextStyle(
+                                                        fontFamily = FontFamily.Monospace,
+                                                        fontSize = 13.sp,
+                                                        lineHeight = 18.sp,
+                                                        color = contentColor,
+                                                    ),
+                                                )
+                                            } else {
+                                                Text(
+                                                    text = highlighted,
+                                                    style = TextStyle(
+                                                        fontFamily = FontFamily.Monospace,
+                                                        fontSize = 13.sp,
+                                                        lineHeight = 18.sp,
+                                                        color = contentColor,
+                                                    ),
+                                                    modifier = Modifier.horizontalScroll(codeScrollState),
+                                                    maxLines = Int.MAX_VALUE,
+                                                )
+                                            }
+                                        }
                                     }
+                                }
+                                is ContentSegment.Image -> {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 4.dp)
+                                            .clip(RoundedCornerShape(12.dp)),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(context)
+                                                .data(segment.path)
+                                                .crossfade(true)
+                                                .build(),
+                                            contentDescription = stringResource(R.string.note_image),
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .aspectRatio(
+                                                    if (segment.width > 0 && segment.height > 0) {
+                                                        segment.width.toFloat() / segment.height.toFloat()
+                                                    } else {
+                                                        16f / 9f
+                                                    }
+                                                )
+                                                .clip(RoundedCornerShape(12.dp))
+                                                .clickable {
+                                                    navigator.push(Route.ImageViewer(segment.path))
+                                                },
+                                            contentScale = ContentScale.Crop,
+                                        )
+                                        IconButton(
+                                            onClick = {
+                                                if (readOnly) return@IconButton
+                                                val textBefore = segments.getOrNull(index - 1)
+                                                val textAfter = segments.getOrNull(index + 1)
+                                                segments.removeAt(index)
+                                                if (textBefore is ContentSegment.Text && textAfter is ContentSegment.Text) {
+                                                    val beforeMd = richTextStates[textBefore.id]?.toMarkdown()
+                                                        ?: textBefore.markdown
+                                                    val afterMd = richTextStates[textAfter.id]?.toMarkdown()
+                                                        ?: textAfter.markdown
+                                                    val separator =
+                                                        if (beforeMd.isEmpty() || afterMd.isEmpty() ||
+                                                            beforeMd.endsWith("\n") || afterMd.startsWith("\n")
+                                                        ) "" else "\n"
+                                                    val merged = textBefore.copy(
+                                                        markdown = beforeMd + separator + afterMd
+                                                    )
+                                                    segments[index - 1] = merged
+                                                    segments.removeAt(index)
+                                                }
+                                            },
+                                            enabled = !readOnly,
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .padding(4.dp)
+                                                .size(32.dp)
+                                                .clip(CircleShape)
+                                                .background(Color.Black.copy(alpha = 0.5f)),
+                                        ) {
+                                            Icon(
+                                                imageVector = MiuixIcons.Delete,
+                                                contentDescription = stringResource(R.string.delete_image),
+                                                tint = Color.White,
+                                                modifier = Modifier.size(18.dp),
+                                            )
+                                    }
+                                }
                                 }
                             }
                         }

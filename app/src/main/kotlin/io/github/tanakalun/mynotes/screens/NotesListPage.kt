@@ -42,6 +42,7 @@ import io.github.tanakalun.mynotes.utils.stripMarkdown
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.basic.CardColors
 import top.yukonga.miuix.kmp.basic.CardDefaults
+import top.yukonga.miuix.kmp.basic.FloatingActionButton
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.InputField
@@ -52,6 +53,7 @@ import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextButtonColors
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Add
 import top.yukonga.miuix.kmp.icon.extended.Close
 import top.yukonga.miuix.kmp.icon.extended.Image
 import top.yukonga.miuix.kmp.icon.extended.Ok
@@ -69,12 +71,15 @@ fun NotesListPage(
     innerPadding: PaddingValues,
     onEditNote: (String) -> Unit,
     onEditChecklist: (String) -> Unit,
+    onCreateNote: () -> Unit,
+    onCreateChecklist: () -> Unit,
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var searchActive by remember { mutableStateOf(false) }
     var selectionMode by remember { mutableStateOf(false) }
     var selectedIds by remember { mutableStateOf(setOf<String>()) }
     var showBatchDialog by remember { mutableStateOf(false) }
+    var showNewDialog by remember { mutableStateOf(false) }
 
     val backdrop = rememberBlurBackdrop()
     val barColor = if (backdrop != null) Color.Transparent else MiuixTheme.colorScheme.surface
@@ -137,6 +142,51 @@ fun NotesListPage(
             TextButton(
                 text = stringResource(R.string.cancel),
                 onClick = { showBatchDialog = false },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+
+    OverlayDialog(
+        show = showNewDialog,
+        title = stringResource(R.string.new_item),
+        summary = stringResource(R.string.choose_item_type),
+        onDismissRequest = { showNewDialog = false },
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                TextButton(
+                    text = stringResource(R.string.note),
+                    onClick = {
+                        showNewDialog = false
+                        onCreateNote()
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = TextButtonColors(
+                        color = MiuixTheme.colorScheme.primary,
+                        disabledColor = MiuixTheme.colorScheme.primaryContainer,
+                        textColor = MiuixTheme.colorScheme.onPrimary,
+                        disabledTextColor = MiuixTheme.colorScheme.onPrimaryContainer,
+                    ),
+                )
+                TextButton(
+                    text = stringResource(R.string.checklist),
+                    onClick = {
+                        showNewDialog = false
+                        onCreateChecklist()
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = TextButtonColors(
+                        color = MiuixTheme.colorScheme.primary,
+                        disabledColor = MiuixTheme.colorScheme.primaryContainer,
+                        textColor = MiuixTheme.colorScheme.onPrimary,
+                        disabledTextColor = MiuixTheme.colorScheme.onPrimaryContainer,
+                    ),
+                )
+            }
+            TextButton(
+                text = stringResource(R.string.cancel),
+                onClick = { showNewDialog = false },
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -276,6 +326,21 @@ fun NotesListPage(
                 }
 
                 item { Spacer(modifier = Modifier.height(8.dp)) }
+            }
+
+            if (!selectionMode) {
+                FloatingActionButton(
+                    onClick = { showNewDialog = true },
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 12.dp, bottom = bottomPadding + 12.dp),
+                ) {
+                    Icon(
+                        imageVector = MiuixIcons.Add,
+                        contentDescription = stringResource(R.string.new_item),
+                        tint = MiuixTheme.colorScheme.onPrimary,
+                    )
+                }
             }
         }
     }

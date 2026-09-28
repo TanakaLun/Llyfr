@@ -154,4 +154,23 @@
     <string name="export_failed">导出失败：%1$s — 完整日志位于 %2$s</string>
     <string name="error_generic">错误：%1$s</string>
     <string name="imported_notes">已导入 %1$d 条笔记</string>
+
+    <!-- Backup password / data security -->
+    <string name="backup_wrong_password">密码错误或备份已损坏</string>
+    <string name="backup_password_export_title">加密备份</string>
+    <string name="backup_password_import_title">输入备份密码</string>
+    <string name="backup_password_label">密码</string>
+    <string name="backup_password_confirm_label">确认密码</string>
+    <string name="backup_password_mismatch">两次输入的密码不一致</string>
+    <string name="backup_export_busy">正在导出备份…</string>
+    <string name="backup_import_busy">正在导入备份…</string>
+    <string name="encrypt_notes">加密笔记</string>
+    <string name="save_on_back">返回时保存</string>
+    <string name="edge_swipe_back">边缘滑返</string>
+    <string name="edge_swipe_back_summary">使用应用内自定义边缘滑动手势返回</string>
+    <string name="save_on_back_summary">通过返回手势离开时自动保存未保存的编辑</string>
+    <string name="encrypt_notes_summary">在本机加密存储笔记内容</string>
+    <string name="note_unreadable_title">无法读取此笔记</string>
+    <string name="note_unreadable_hint">其内容使用本机密钥加密，而该密钥已不可用。请从备份恢复，或删除它。</string>
+    <string name="back_to_list">返回列表</string>
 </resources>

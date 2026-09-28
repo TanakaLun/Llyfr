@@ -14,14 +14,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import io.github.tanakalun.mynotes.data.NoteRepository
+import io.github.tanakalun.mynotes.data.settings.SettingsStore
 import io.github.tanakalun.mynotes.ui.AppTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        NoteRepository.init(this)
-        SettingsStore.init(this)
 
         setContent {
             val colorMode = SettingsStore.colorMode

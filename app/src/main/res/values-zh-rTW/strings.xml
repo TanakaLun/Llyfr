@@ -154,4 +154,23 @@
     <string name="export_failed">匯出失敗：%1$s — 完整日誌位於 %2$s</string>
     <string name="error_generic">錯誤：%1$s</string>
     <string name="imported_notes">已匯入 %1$d 則筆記</string>
+
+    <!-- Backup password / data security -->
+    <string name="backup_wrong_password">密碼錯誤或備份已損壞</string>
+    <string name="backup_password_export_title">加密備份</string>
+    <string name="backup_password_import_title">輸入備份密碼</string>
+    <string name="backup_password_label">密碼</string>
+    <string name="backup_password_confirm_label">確認密碼</string>
+    <string name="backup_password_mismatch">兩次輸入的密碼不一致</string>
+    <string name="backup_export_busy">正在匯出備份…</string>
+    <string name="backup_import_busy">正在匯入備份…</string>
+    <string name="encrypt_notes">加密筆記</string>
+    <string name="save_on_back">返回時儲存</string>
+    <string name="edge_swipe_back">邊緣滑返</string>
+    <string name="edge_swipe_back_summary">使用應用程式內自訂邊緣滑動手勢返回</string>
+    <string name="save_on_back_summary">透過返回手勢離開時自動儲存未儲存的編輯</string>
+    <string name="encrypt_notes_summary">在本機加密儲存筆記內容</string>
+    <string name="note_unreadable_title">無法讀取此筆記</string>
+    <string name="note_unreadable_hint">其內容使用本機金鑰加密，而該金鑰已不可用。請從備份恢復，或刪除它。</string>
+    <string name="back_to_list">返回列表</string>
 </resources>

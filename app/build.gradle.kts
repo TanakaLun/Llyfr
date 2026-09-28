@@ -7,6 +7,12 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.aboutlibraries)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.androidx.room3)
+}
+
+room3 {
+    schemaDirectory("$projectDir/schemas")
 }
 
 android {
@@ -68,6 +74,12 @@ dependencies {
     implementation(libs.compose.runtime)
     implementation(libs.activity.compose)
     implementation(libs.lifecycle.runtime.compose)
+    implementation(libs.lifecycle.viewmodel.compose)
+
+    implementation(libs.room3.runtime)
+    implementation(libs.sqlite.framework)
+    ksp(libs.room3.compiler)
+
     implementation(libs.aboutlibraries.core)
     implementation(libs.richeditor)
     implementation(libs.coil.compose)

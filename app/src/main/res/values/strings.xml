@@ -156,4 +156,23 @@
     <string name="export_failed">Export failed: %1$s — full log at %2$s</string>
     <string name="error_generic">Error: %1$s</string>
     <string name="imported_notes">Imported %1$d notes</string>
+
+    <!-- Backup password / data security -->
+    <string name="backup_wrong_password">Wrong password or corrupted backup</string>
+    <string name="backup_password_export_title">Encrypt backup</string>
+    <string name="backup_password_import_title">Enter backup password</string>
+    <string name="backup_password_label">Password</string>
+    <string name="backup_password_confirm_label">Confirm password</string>
+    <string name="backup_password_mismatch">Passwords do not match</string>
+    <string name="backup_export_busy">Exporting backup…</string>
+    <string name="backup_import_busy">Importing backup…</string>
+    <string name="encrypt_notes">Encrypt notes</string>
+    <string name="save_on_back">Save on back</string>
+    <string name="edge_swipe_back">Edge swipe back</string>
+    <string name="edge_swipe_back_summary">Use the custom in-app edge-swipe gesture to go back</string>
+    <string name="save_on_back_summary">Save unsaved edits when leaving via back gesture</string>
+    <string name="encrypt_notes_summary">Store note contents encrypted on this device</string>
+    <string name="note_unreadable_title">Unable to read this note</string>
+    <string name="note_unreadable_hint">Its content is encrypted with a device key that is no longer available. Restore it from a backup, or delete it.</string>
+    <string name="back_to_list">Back to list</string>
 </resources>

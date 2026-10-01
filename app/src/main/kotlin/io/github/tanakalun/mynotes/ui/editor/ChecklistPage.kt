@@ -47,6 +47,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.tanakalun.mynotes.R
+import io.github.tanakalun.mynotes.ui.util.adaptiveContentWindowInsets
+import io.github.tanakalun.mynotes.LocalIsWideScreen
 import io.github.tanakalun.mynotes.core.AppViewModelFactory
 import io.github.tanakalun.mynotes.core.LocalOnBackSink
 import io.github.tanakalun.mynotes.data.model.CheckItem
@@ -85,6 +87,7 @@ fun ChecklistPage(
     viewModel: ChecklistViewModel = viewModel(factory = AppViewModelFactory),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isWideScreen = LocalIsWideScreen.current
     val navigator = LocalNavigator.current
     val onBack = { navigator.pop() }
 
@@ -144,6 +147,7 @@ fun ChecklistPage(
     }
 
     Scaffold(
+        contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
         topBar = {
             BlurredBar(backdrop = backdrop, scrollBehavior = topAppBarScrollBehavior) {
                 SmallTopAppBar(
@@ -151,6 +155,7 @@ fun ChecklistPage(
                         if (uiState.isNew) R.string.new_checklist else R.string.edit_checklist
                     ),
                     color = barColor,
+                    defaultWindowInsetsPadding = !isWideScreen,
                     navigationIcon = {
                         BackNavigationIcon(onClick = {
                             deleteMode = false

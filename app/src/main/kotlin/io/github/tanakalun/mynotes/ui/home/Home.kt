@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.tanakalun.mynotes.R
 import io.github.tanakalun.mynotes.core.AppViewModelFactory
+import io.github.tanakalun.mynotes.LocalIsWideScreen
 import io.github.tanakalun.mynotes.data.settings.SettingsStore
 import io.github.tanakalun.mynotes.ui.components.liquid.IosLiquidGlassNavigationBar
 import io.github.tanakalun.mynotes.ui.notes.NotesListPage
@@ -70,12 +71,12 @@ fun Home(
     onAboutClick: () -> Unit,
     settingsViewModel: SettingsViewModel = viewModel(factory = AppViewModelFactory),
 ) {
+    val isWideScreen = LocalIsWideScreen.current
     val backdrop = rememberBlurBackdrop()
     val powerSave = isPowerSave()
     val blurActive = SettingsStore.enableBlur && backdrop != null && !powerSave
     val barColor = if (blurActive) Color.Transparent else MiuixTheme.colorScheme.surface
     val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
 
     val uiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
 
@@ -106,16 +107,19 @@ fun Home(
             SnackbarHost(state = snackbarHostState)
         },
         bottomBar = {
-            NavigationBarSection(
-                navigationItems = navigationItems,
-                mainPagerState = mainPagerState,
-                backdrop = backdrop,
-                blurActive = blurActive,
-                barColor = barColor,
-                useFloating = SettingsStore.useFloatingNavbar,
-                floatingStyle = SettingsStore.floatingNavbarStyle,
-                floatingPosition = SettingsStore.floatingNavbarPosition,
-            )
+            // 宽屏由左侧 rail 承担导航，隐藏底部导航条
+            if (!isWideScreen) {
+                NavigationBarSection(
+                    navigationItems = navigationItems,
+                    mainPagerState = mainPagerState,
+                    backdrop = backdrop,
+                    blurActive = blurActive,
+                    barColor = barColor,
+                    useFloating = SettingsStore.useFloatingNavbar,
+                    floatingStyle = SettingsStore.floatingNavbarStyle,
+                    floatingPosition = SettingsStore.floatingNavbarPosition,
+                )
+            }
         },
     ) { innerPadding ->
         Box(

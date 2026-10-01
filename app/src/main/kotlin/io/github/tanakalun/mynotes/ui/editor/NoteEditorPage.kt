@@ -74,6 +74,8 @@ import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.BasicRichTextEditor
 import io.github.tanakalun.mynotes.R
+import io.github.tanakalun.mynotes.ui.util.adaptiveContentWindowInsets
+import io.github.tanakalun.mynotes.LocalIsWideScreen
 import io.github.tanakalun.mynotes.core.AppViewModelFactory
 import io.github.tanakalun.mynotes.core.LocalOnBackSink
 import io.github.tanakalun.mynotes.LocalNavigator
@@ -106,6 +108,7 @@ fun NoteEditorPage(
     viewModel: NoteEditorViewModel = viewModel(factory = AppViewModelFactory),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isWideScreen = LocalIsWideScreen.current
     val context = LocalContext.current
     val navigator = LocalNavigator.current
     val onBack = { navigator.pop() }
@@ -194,12 +197,14 @@ fun NoteEditorPage(
     }
 
     Scaffold(
+        contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
         topBar = {
             SmallTopAppBar(
                 title = stringResource(
                     if (uiState.isNew) R.string.new_note else R.string.edit_note
                 ),
                 color = MiuixTheme.colorScheme.surface,
+                defaultWindowInsetsPadding = !isWideScreen,
                 navigationIcon = {
                     BackNavigationIcon(onClick = { viewModel.save(markdownResolver, onBack) })
                 },

@@ -18,6 +18,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.tanakalun.mynotes.R
+import io.github.tanakalun.mynotes.ui.util.adaptiveContentWindowInsets
+import io.github.tanakalun.mynotes.LocalIsWideScreen
 import io.github.tanakalun.mynotes.core.PowerSaveModeTracker
 import io.github.tanakalun.mynotes.data.settings.SettingsStore
 import io.github.tanakalun.mynotes.ui.util.BlurredBar
@@ -98,6 +100,7 @@ fun SettingsPage(
     viewModel: SettingsViewModel,
 ) {
     val context = LocalContext.current
+    val isWideScreen = LocalIsWideScreen.current
     val backdrop = rememberBlurBackdrop()
     val powerSave by PowerSaveModeTracker.isPowerSaveMode.collectAsStateWithLifecycle()
     val barColor = if (backdrop != null) Color.Transparent else MiuixTheme.colorScheme.surface
@@ -127,6 +130,7 @@ fun SettingsPage(
     val swipeBackEnabled = SettingsStore.swipeBackEnabled
 
     Scaffold(
+        contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
         topBar = {
             BlurredBar(
                 backdrop = backdrop,
@@ -135,6 +139,7 @@ fun SettingsPage(
                 TopAppBar(
                     title = stringResource(R.string.settings),
                     color = barColor,
+                    defaultWindowInsetsPadding = !isWideScreen,
                     scrollBehavior = topAppBarScrollBehavior,
                 )
             }
@@ -154,7 +159,7 @@ fun SettingsPage(
                     .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
                 contentPadding = PaddingValues(
                     top = topPadding,
-                    bottom = bottomPadding + 80.dp,
+                    bottom = bottomPadding + 12.dp,
                 ),
             ) {
                 item(key = "appearance") {

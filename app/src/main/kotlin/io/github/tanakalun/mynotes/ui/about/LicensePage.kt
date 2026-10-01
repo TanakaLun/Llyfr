@@ -24,7 +24,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.tanakalun.mynotes.LocalNavigator
+import io.github.tanakalun.mynotes.ui.util.adaptiveContentWindowInsets
 import io.github.tanakalun.mynotes.R
+import io.github.tanakalun.mynotes.LocalIsWideScreen
 import io.github.tanakalun.mynotes.core.AppViewModelFactory
 import io.github.tanakalun.mynotes.ui.util.BackNavigationIcon
 import io.github.tanakalun.mynotes.ui.util.BlurredBar
@@ -43,12 +45,14 @@ fun LicensePage(
     viewModel: LicenseViewModel = viewModel(factory = AppViewModelFactory),
 ) {
     val navigator = LocalNavigator.current
+    val isWideScreen = LocalIsWideScreen.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val backdrop = rememberBlurBackdrop()
     val barColor = if (backdrop != null) Color.Transparent else MiuixTheme.colorScheme.surface
     val topAppBarScrollBehavior = MiuixScrollBehavior()
 
     Scaffold(
+        contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
         topBar = {
             BlurredBar(
                 backdrop = backdrop,
@@ -58,6 +62,7 @@ fun LicensePage(
                     title = stringResource(R.string.third_party_licenses),
                     scrollBehavior = topAppBarScrollBehavior,
                     color = barColor,
+                    defaultWindowInsetsPadding = !isWideScreen,
                     navigationIcon = {
                         BackNavigationIcon(onClick = { navigator.pop() })
                     },
@@ -70,7 +75,7 @@ fun LicensePage(
         val contentPadding = PaddingValues(
             top = scaffoldPadding.calculateTopPadding(),
             bottom = scaffoldPadding.calculateBottomPadding() + 16.dp,
-            start = WindowInsets.displayCutout.asPaddingValues().calculateLeftPadding(LayoutDirection.Ltr),
+            start = if (isWideScreen) 0.dp else WindowInsets.displayCutout.asPaddingValues().calculateLeftPadding(LayoutDirection.Ltr),
             end = WindowInsets.displayCutout.asPaddingValues().calculateRightPadding(LayoutDirection.Ltr),
         )
         Box(

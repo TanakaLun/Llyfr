@@ -34,6 +34,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.tanakalun.mynotes.R
+import io.github.tanakalun.mynotes.ui.util.adaptiveContentWindowInsets
+import io.github.tanakalun.mynotes.LocalIsWideScreen
 import io.github.tanakalun.mynotes.core.AppViewModelFactory
 import io.github.tanakalun.mynotes.data.model.Note
 import io.github.tanakalun.mynotes.data.model.NoteType
@@ -78,6 +80,7 @@ fun NotesListPage(
     viewModel: NotesListViewModel = viewModel(factory = AppViewModelFactory),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isWideScreen = LocalIsWideScreen.current
     val notes = uiState.notes
     val searchQuery = uiState.query
     val selectionMode = uiState.selectionMode
@@ -187,6 +190,7 @@ fun NotesListPage(
     }
 
     Scaffold(
+        contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
         topBar = {
             BlurredBar(
                 backdrop = backdrop,
@@ -203,6 +207,7 @@ fun NotesListPage(
                         "MyNotes"
                     },
                     color = barColor,
+                    defaultWindowInsetsPadding = !isWideScreen,
                     scrollBehavior = topAppBarScrollBehavior,
                     actions = {
                         if (selectionMode) {

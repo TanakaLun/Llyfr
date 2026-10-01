@@ -24,7 +24,9 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import io.github.tanakalun.mynotes.LocalNavigator
+import io.github.tanakalun.mynotes.ui.util.adaptiveContentWindowInsets
 import io.github.tanakalun.mynotes.R
+import io.github.tanakalun.mynotes.LocalIsWideScreen
 import io.github.tanakalun.mynotes.ui.util.BackNavigationIcon
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.SmallTopAppBar
@@ -36,17 +38,20 @@ fun ImageViewerPage(
 ) {
     val context = LocalContext.current
     val navigator = LocalNavigator.current
+    val isWideScreen = LocalIsWideScreen.current
 
     var scale by remember { mutableFloatStateOf(1f) }
     var offsetX by remember { mutableFloatStateOf(0f) }
     var offsetY by remember { mutableFloatStateOf(0f) }
 
     Scaffold(
+        contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
         topBar = {
             SmallTopAppBar(
                 title = "",
                 color = Color.Black,
                 titleColor = Color.White,
+                defaultWindowInsetsPadding = !isWideScreen,
                 navigationIcon = {
                     BackNavigationIcon(
                         onClick = { navigator.pop() },

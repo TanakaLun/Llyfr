@@ -43,6 +43,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.tanakalun.mynotes.BuildConfig
+import io.github.tanakalun.mynotes.ui.util.adaptiveContentWindowInsets
+import io.github.tanakalun.mynotes.LocalIsWideScreen
 import io.github.tanakalun.mynotes.LocalNavigator
 import io.github.tanakalun.mynotes.ui.navigation.Route
 import io.github.tanakalun.mynotes.R
@@ -77,6 +79,7 @@ import androidx.compose.ui.graphics.BlendMode as ComposeBlendMode
 @Composable
 fun AboutPage() {
     val navigator = LocalNavigator.current
+    val isWideScreen = LocalIsWideScreen.current
     val topAppBarScrollBehavior = MiuixScrollBehavior()
     val lazyListState = rememberLazyListState()
 
@@ -101,6 +104,7 @@ fun AboutPage() {
     val blurActive by remember(backdrop) { derivedStateOf { backdrop != null && scrollProgress == 1f } }
 
     Scaffold(
+        contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
         topBar = {
             val barColor = if (blurActive) {
                 Color.Transparent
@@ -152,6 +156,7 @@ private fun AboutContent(
     navigator: io.github.tanakalun.mynotes.ui.navigation.Navigator,
 ) {
     val uriHandler = LocalUriHandler.current
+    val isWideScreen = LocalIsWideScreen.current
 
     val backdrop = rememberBlurBackdrop()
     var isOs3Effect by remember { mutableStateOf(true) }
@@ -163,12 +168,12 @@ private fun AboutContent(
     var saturation by remember { mutableFloatStateOf(1f) }
     val scrollPadding = PaddingValues(
         top = padding.calculateTopPadding(),
-        start = WindowInsets.displayCutout.asPaddingValues().calculateLeftPadding(LayoutDirection.Ltr),
+        start = if (isWideScreen) 0.dp else WindowInsets.displayCutout.asPaddingValues().calculateLeftPadding(LayoutDirection.Ltr),
         end = WindowInsets.displayCutout.asPaddingValues().calculateRightPadding(LayoutDirection.Ltr),
     )
     val logoPadding = PaddingValues(
         top = padding.calculateTopPadding() + 40.dp,
-        start = WindowInsets.displayCutout.asPaddingValues().calculateLeftPadding(LayoutDirection.Ltr),
+        start = if (isWideScreen) 0.dp else WindowInsets.displayCutout.asPaddingValues().calculateLeftPadding(LayoutDirection.Ltr),
         end = WindowInsets.displayCutout.asPaddingValues().calculateRightPadding(LayoutDirection.Ltr),
     )
 

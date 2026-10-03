@@ -94,6 +94,7 @@ fun Home(
         contract = ActivityResultContracts.CreateDocument("application/x-mynotes-backup"),
     ) { uri ->
         if (uri != null) settingsViewModel.onExportUri(uri)
+        else settingsViewModel.onExportCancelled()
     }
 
     val importLauncher = rememberLauncherForActivityResult(
@@ -143,8 +144,7 @@ fun Home(
                         innerPadding = innerPadding,
                         onAboutClick = onAboutClick,
                         onExportClick = {
-                            val dateStr = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(Date())
-                            exportLauncher.launch("mynotes-$dateStr.mnbackup")
+                            settingsViewModel.onAskExportPassword()
                         },
                         onImportClick = {
                             importLauncher.launch(arrayOf("*/*"))
@@ -157,7 +157,11 @@ fun Home(
 
         when (val dialog = uiState.backupDialog) {
             is BackupDialogState.ExportPassword -> ExportPasswordDialog(
-                onConfirm = settingsViewModel::onExportPasswordConfirmed,
+                onConfirm = { password ->
+                    settingsViewModel.onExportPasswordFilled(password)
+                    val dateStr = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(Date())
+                    exportLauncher.launch("mynotes-$dateStr.mnbackup")
+                },
                 onDismiss = settingsViewModel::dismissBackupDialog,
             )
             is BackupDialogState.ImportPassword -> ImportPasswordDialog(

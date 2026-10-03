@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 
 sealed interface BackupDialogState {
     data object None : BackupDialogState
-    data class ExportPassword(val uri: Uri) : BackupDialogState
+    data object ExportPassword : BackupDialogState
     data class ImportPassword(val bytes: ByteArray) : BackupDialogState
     data class ImportConfirm(
         val bytes: ByteArray,
@@ -49,12 +49,30 @@ class SettingsViewModel(
     private val _messages = MutableSharedFlow<String>(extraBufferCapacity = 4)
     val messages: SharedFlow<String> = _messages.asSharedFlow()
 
-    fun onExportUri(uri: Uri) {
-        _uiState.update { it.copy(backupDialog = BackupDialogState.ExportPassword(uri)) }
+    /** 导出路径还未选：先存口令，等 SAF 返回 uri 后再执行导出。 */
+    private var pendingExportPassword: CharArray? = null
+
+    fun onAskExportPassword() {
+        _uiState.update { it.copy(backupDialog = BackupDialogState.ExportPassword) }
     }
 
-    fun onExportPasswordConfirmed(password: CharArray) {
-        val uri = (_uiState.value.backupDialog as? BackupDialogState.ExportPassword)?.uri ?: return
+    fun onExportPasswordFilled(password: CharArray) {
+        pendingExportPassword = password
+        _uiState.update { it.copy(backupDialog = BackupDialogState.None) }
+    }
+
+    /** SAF 选择器被取消：清空暂存口令。 */
+    fun onExportCancelled() {
+        pendingExportPassword?.fill('\u0000')
+        pendingExportPassword = null
+    }
+
+    fun onExportUri(uri: Uri) {
+        val password = pendingExportPassword ?: run {
+            _uiState.update { it.copy(backupDialog = BackupDialogState.ExportPassword) }
+            return
+        }
+        pendingExportPassword = null
         _uiState.update { it.copy(busyOp = BusyOp.Export, backupDialog = BackupDialogState.None) }
         viewModelScope.launch {
             try {

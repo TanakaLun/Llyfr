@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">MyNotes</string>
+    <string name="app_name">Llyfr</string>
 
     <!-- Navigation -->
     <string name="nav_notes">Notes</string>
@@ -160,6 +160,7 @@
     <!-- Backup password / data security -->
     <string name="backup_wrong_password">Wrong password or corrupted backup</string>
     <string name="backup_password_export_title">Encrypt backup</string>
+    <string name="backup_password_export_summary">Set a password first, then choose where to save the backup</string>
     <string name="backup_password_import_title">Enter backup password</string>
     <string name="backup_password_label">Password</string>
     <string name="backup_password_confirm_label">Confirm password</string>

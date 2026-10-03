@@ -23,8 +23,8 @@ android {
         applicationId = "io.github.tanakalun.mynotes"
         minSdk = 33
         targetSdk = 37
-        versionCode = 40
-        versionName = "1.2.7"
+        versionCode = 45
+        versionName = "1.3.2"
     
     packaging {
         resources {

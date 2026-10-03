@@ -15,6 +15,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MyNotes"
+rootProject.name = "Llyfr"
 
 include(":app")

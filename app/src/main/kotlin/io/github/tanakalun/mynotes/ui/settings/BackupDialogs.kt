@@ -37,7 +37,7 @@ internal fun ExportPasswordDialog(
     OverlayDialog(
         show = true,
         title = stringResource(R.string.backup_password_export_title),
-        summary = stringResource(R.string.export_data_summary),
+        summary = stringResource(R.string.backup_password_export_summary),
         onDismissRequest = onDismiss,
     ) {
         Column(

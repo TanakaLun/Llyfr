@@ -158,6 +158,7 @@
     <!-- Backup password / data security -->
     <string name="backup_wrong_password">密码错误或备份已损坏</string>
     <string name="backup_password_export_title">加密备份</string>
+    <string name="backup_password_export_summary">先设置口令，再选择备份的保存位置</string>
     <string name="backup_password_import_title">输入备份密码</string>
     <string name="backup_password_label">密码</string>
     <string name="backup_password_confirm_label">确认密码</string>

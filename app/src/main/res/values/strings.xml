@@ -68,7 +68,7 @@
     <string name="export_data_summary">Save notes and settings to a file</string>
     <string name="import_data">Import Data</string>
     <string name="import_data_summary">Restore notes and settings from a file</string>
-    <string name="about_summary">MyNotes — A Notes APP which simple yet sophisticated design</string>
+    <string name="about_summary">Llyfr — A Notes APP which simple yet sophisticated design</string>
 
     <!-- Color mode options -->
     <string name="color_mode_system">System</string>

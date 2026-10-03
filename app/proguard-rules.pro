@@ -29,14 +29,14 @@
 # The key fragments (kf, ivF) and derived methods (keyBytes, ivBytes)
 # are deliberately NOT kept - R8 renames and inlines them so the
 # encryption key material is not trivially extractable from DEX.
--keep class io.github.tanakalun.mynotes.data.BackupCrypto {
+-keep class io.github.tanakalun.llyfr.data.BackupCrypto {
     public static * encrypt(byte[]);
     public static * decrypt(byte[]);
 }
 
 # kotlinx-serialization: keep serializers for backup DTOs
--keepclassmembers class io.github.tanakalun.mynotes.data.Backup** {
+-keepclassmembers class io.github.tanakalun.llyfr.data.Backup** {
     public static ** serializer(...);
     public static ** companion;
 }
--keep,includedescriptorclasses class io.github.tanakalun.mynotes.data.Backup**$$serializer { *; }
+-keep,includedescriptorclasses class io.github.tanakalun.llyfr.data.Backup**$$serializer { *; }

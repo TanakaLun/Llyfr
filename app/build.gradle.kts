@@ -16,11 +16,11 @@ room3 {
 }
 
 android {
-    namespace = "io.github.tanakalun.mynotes"
+    namespace = "io.github.tanakalun.llyfr"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "io.github.tanakalun.mynotes"
+        applicationId = "io.github.tanakalun.llyfr"
         minSdk = 33
         targetSdk = 37
         versionCode = 45

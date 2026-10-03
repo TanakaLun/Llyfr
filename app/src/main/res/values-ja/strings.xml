@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">MyNotes</string>
+    <string name="app_name">Llyfr</string>
 
     <!-- Navigation -->
     <string name="nav_notes">メモ</string>
@@ -67,7 +67,7 @@
     <string name="export_data_summary">メモと設定をファイルに保存</string>
     <string name="import_data">データのインポート</string>
     <string name="import_data_summary">ファイルからメモと設定を復元</string>
-    <string name="about_summary">MyNotes — シンプルでありながら洗練されたノートアプリ</string>
+    <string name="about_summary">Llyfr — シンプルでありながら洗練されたノートアプリ</string>
 
     <!-- Color mode options -->
     <string name="color_mode_system">システムに従う</string>

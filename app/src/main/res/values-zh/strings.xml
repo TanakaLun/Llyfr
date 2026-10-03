@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">MyNotes</string>
+    <string name="app_name">Llyfr</string>
 
     <!-- Navigation -->
     <string name="nav_notes">笔记</string>
@@ -67,7 +67,7 @@
     <string name="export_data_summary">将笔记和设置保存到文件</string>
     <string name="import_data">导入数据</string>
     <string name="import_data_summary">从文件恢复笔记和设置</string>
-    <string name="about_summary">MyNotes — 一款简约但不简单的笔记应用</string>
+    <string name="about_summary">Llyfr — 一款简约但不简单的笔记应用</string>
 
     <!-- Color mode options -->
     <string name="color_mode_system">跟随系统</string>

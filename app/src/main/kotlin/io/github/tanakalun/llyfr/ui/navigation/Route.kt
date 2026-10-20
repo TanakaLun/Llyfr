@@ -15,6 +15,9 @@ sealed interface Route : NavKey {
     data class ChecklistEditor(val noteId: String = "") : Route
 
     @Serializable
+    data class TodoEditor(val noteId: String = "") : Route
+
+    @Serializable
     data object About : Route
 
     @Serializable

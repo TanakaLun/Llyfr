@@ -29,6 +29,7 @@ import io.github.tanakalun.llyfr.ui.about.AboutPage
 import io.github.tanakalun.llyfr.ui.about.LicensePage
 import io.github.tanakalun.llyfr.ui.editor.ChecklistPage
 import io.github.tanakalun.llyfr.ui.editor.NoteEditorPage
+import io.github.tanakalun.llyfr.ui.editor.TodoEditorPage
 import io.github.tanakalun.llyfr.ui.home.Home
 import io.github.tanakalun.llyfr.ui.home.MainPagerState
 import io.github.tanakalun.llyfr.ui.home.rememberMainPagerState
@@ -147,19 +148,24 @@ fun AppContent() {
                                 Home(
                                     navigationItems = navigationItems,
                                     mainPagerState = mainPagerState,
-                                    onEditNote = { id -> navigator.push(Route.NoteEditor(id)) },
-                                    onEditChecklist = { id -> navigator.push(Route.ChecklistEditor(id)) },
-                                    onCreateNote = { navigator.push(Route.NoteEditor()) },
-                                    onCreateChecklist = { navigator.push(Route.ChecklistEditor()) },
-                                    onAboutClick = { navigator.push(Route.About) },
+onEditNote = { id -> navigator.push(Route.NoteEditor(id)) },
+                            onEditChecklist = { id -> navigator.push(Route.ChecklistEditor(id)) },
+                            onEditTodo = { id -> navigator.push(Route.TodoEditor(id)) },
+                            onCreateNote = { navigator.push(Route.NoteEditor()) },
+                            onCreateChecklist = { navigator.push(Route.ChecklistEditor()) },
+                            onCreateTodo = { navigator.push(Route.TodoEditor()) },
+                            onAboutClick = { navigator.push(Route.About) },
                                 )
                             }
                             entry<Route.NoteEditor>(swipeDismiss = swipeDismiss) { route ->
                                 NoteEditorPage(noteId = route.noteId)
                             }
-                            entry<Route.ChecklistEditor>(swipeDismiss = swipeDismiss) { route ->
-                                ChecklistPage(noteId = route.noteId)
-                            }
+entry<Route.ChecklistEditor>(swipeDismiss = swipeDismiss) { route ->
+                        ChecklistPage(noteId = route.noteId)
+                    }
+                    entry<Route.TodoEditor>(swipeDismiss = swipeDismiss) { route ->
+                        TodoEditorPage(noteId = route.noteId)
+                    }
                             entry<Route.About>(swipeDismiss = swipeDismiss) {
                                 AboutPage()
                             }

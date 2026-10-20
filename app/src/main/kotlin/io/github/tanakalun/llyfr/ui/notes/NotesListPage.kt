@@ -62,6 +62,7 @@ import top.yukonga.miuix.kmp.icon.extended.Close
 import top.yukonga.miuix.kmp.icon.extended.Image
 import top.yukonga.miuix.kmp.icon.extended.Ok
 import top.yukonga.miuix.kmp.icon.extended.Pin
+import top.yukonga.miuix.kmp.icon.extended.Alarm
 import top.yukonga.miuix.kmp.icon.extended.Tasks
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -75,8 +76,10 @@ fun NotesListPage(
     innerPadding: PaddingValues,
     onEditNote: (String) -> Unit,
     onEditChecklist: (String) -> Unit,
+    onEditTodo: (String) -> Unit,
     onCreateNote: () -> Unit,
     onCreateChecklist: () -> Unit,
+    onCreateTodo: () -> Unit,
     viewModel: NotesListViewModel = viewModel(factory = AppViewModelFactory),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -171,6 +174,20 @@ fun NotesListPage(
                     onClick = {
                         showNewDialog = false
                         onCreateChecklist()
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = TextButtonColors(
+                        color = MiuixTheme.colorScheme.primary,
+                        disabledColor = MiuixTheme.colorScheme.primaryContainer,
+                        textColor = MiuixTheme.colorScheme.onPrimary,
+                        disabledTextColor = MiuixTheme.colorScheme.onPrimaryContainer,
+                    ),
+                )
+                TextButton(
+                    text = stringResource(R.string.todo),
+                    onClick = {
+                        showNewDialog = false
+                        onCreateTodo()
                     },
                     modifier = Modifier.weight(1f),
                     colors = TextButtonColors(
@@ -297,6 +314,7 @@ fun NotesListPage(
                             when (viewModel.onOpenRequested(note)) {
                                 NoteType.Note -> onEditNote(note.id)
                                 NoteType.Checklist -> onEditChecklist(note.id)
+                                NoteType.Todo -> onEditTodo(note.id)
                             }
                         }
                     }
@@ -309,6 +327,12 @@ fun NotesListPage(
                             onLongPress = handleLongPress,
                         )
                         NoteType.Checklist -> ChecklistSummaryCard(
+                            note = note,
+                            selected = selected,
+                            onClick = handleClick,
+                            onLongPress = handleLongPress,
+                        )
+                        NoteType.Todo -> TodoSummaryCard(
                             note = note,
                             selected = selected,
                             onClick = handleClick,
@@ -531,6 +555,97 @@ private fun ChecklistSummaryCard(
                 Text(
                     text = "$checkedCount / $totalCount",
                     style = MiuixTheme.textStyles.body1.copy(fontSize = 14.sp),
+                    color = cardColors.contentColor.copy(alpha = 0.75f),
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = dateFormat.format(Date(note.updatedAt)),
+                style = MiuixTheme.textStyles.footnote1,
+                color = cardColors.contentColor.copy(alpha = 0.55f),
+            )
+        }
+    }
+}
+@Composable
+private fun TodoSummaryCard(
+    note: Note,
+    selected: Boolean,
+    onClick: () -> Unit,
+    onLongPress: () -> Unit,
+) {
+    val dateFormat = remember { SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()) }
+    val untitledText = stringResource(R.string.untitled)
+    val cardColors = noteCardColors(note.colorIndex)
+    val reminderText = if (note.reminderAt > 0L) {
+        dateFormat.format(Date(note.reminderAt))
+    } else {
+        stringResource(R.string.reminder_not_set)
+    }
+
+    top.yukonga.miuix.kmp.basic.Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (selected) {
+                    Modifier.border(
+                        width = 2.dp,
+                        color = MiuixTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(16.dp),
+                    )
+                } else {
+                    Modifier
+                },
+            ),
+        onClick = onClick,
+        onLongPress = onLongPress,
+        colors = cardColors,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = note.title.ifBlank { untitledText },
+                    style = MiuixTheme.textStyles.title1.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 17.sp,
+                    ),
+                    color = cardColors.contentColor,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+                if (note.pinned) {
+                    Icon(
+                        imageVector = MiuixIcons.Pin,
+                        contentDescription = null,
+                        tint = cardColors.contentColor.copy(alpha = 0.85f),
+                        modifier = Modifier
+                            .padding(start = 6.dp)
+                            .size(16.dp),
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Icon(
+                    imageVector = MiuixIcons.Alarm,
+                    contentDescription = null,
+                    tint = cardColors.contentColor.copy(alpha = 0.75f),
+                    modifier = Modifier.size(14.dp),
+                )
+                Text(
+                    text = reminderText,
+                    style = MiuixTheme.textStyles.body1.copy(fontSize = 13.sp),
                     color = cardColors.contentColor.copy(alpha = 0.75f),
                 )
             }

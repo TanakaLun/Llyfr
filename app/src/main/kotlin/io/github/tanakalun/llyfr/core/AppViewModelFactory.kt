@@ -8,6 +8,7 @@ import io.github.tanakalun.llyfr.LlyfrApplication
 import io.github.tanakalun.llyfr.ui.about.LicenseViewModel
 import io.github.tanakalun.llyfr.ui.editor.ChecklistViewModel
 import io.github.tanakalun.llyfr.ui.editor.NoteEditorViewModel
+import io.github.tanakalun.llyfr.ui.editor.TodoEditorViewModel
 import io.github.tanakalun.llyfr.ui.notes.NotesListViewModel
 import io.github.tanakalun.llyfr.ui.settings.SettingsViewModel
 
@@ -20,7 +21,12 @@ object AppViewModelFactory : ViewModelProvider.Factory {
         val container = (app as LlyfrApplication).container
         return when {
             modelClass.isAssignableFrom(NotesListViewModel::class.java) ->
-                NotesListViewModel(container.noteRepository, extras.createSavedStateHandle())
+                NotesListViewModel(
+                    container.noteRepository,
+                    extras.createSavedStateHandle(),
+                    container.appContext,
+                    container.reminderScheduler,
+                )
 
             modelClass.isAssignableFrom(NoteEditorViewModel::class.java) ->
                 NoteEditorViewModel(
@@ -32,6 +38,9 @@ object AppViewModelFactory : ViewModelProvider.Factory {
 
             modelClass.isAssignableFrom(ChecklistViewModel::class.java) ->
                 ChecklistViewModel(container.noteRepository, container.appScope)
+
+            modelClass.isAssignableFrom(TodoEditorViewModel::class.java) ->
+                TodoEditorViewModel(container.noteRepository, container.reminderScheduler, container.appScope)
 
             modelClass.isAssignableFrom(SettingsViewModel::class.java) ->
                 SettingsViewModel(container.backupService, container.errorReporter, container.appContext)

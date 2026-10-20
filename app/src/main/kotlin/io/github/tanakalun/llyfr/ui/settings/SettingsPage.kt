@@ -128,6 +128,7 @@ fun SettingsPage(
     val encryptNotes = SettingsStore.encryptNotes
     val saveOnBack = SettingsStore.saveOnBack
     val swipeBackEnabled = SettingsStore.swipeBackEnabled
+    val reminderNotifStyle = SettingsStore.reminderNotifStyle
 
     Scaffold(
         contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
@@ -292,6 +293,24 @@ fun SettingsPage(
                             summary = stringResource(R.string.code_block_wrap_summary),
                             checked = codeBlockWrap,
                             onCheckedChange = { viewModel.updateCodeBlockWrap(it) },
+                        )
+                    }
+                }
+
+                item(key = "reminder") {
+                    SmallTitle(text = stringResource(R.string.section_reminder))
+                    Card(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    ) {
+                        OverlayDropdownPreference(
+                            items = listOf(
+                                stringResource(R.string.notif_style_normal),
+                                stringResource(R.string.notif_style_live),
+                            ),
+                            selectedIndex = reminderNotifStyle,
+                            title = stringResource(R.string.notif_style_title),
+                            summary = stringResource(R.string.notif_style_summary),
+                            onSelectedIndexChange = { viewModel.updateReminderNotifStyle(it) },
                         )
                     }
                 }

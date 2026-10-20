@@ -176,4 +176,19 @@
     <string name="note_unreadable_title">Unable to read this note</string>
     <string name="note_unreadable_hint">Its content is encrypted with a device key that is no longer available. Restore it from a backup, or delete it.</string>
     <string name="back_to_list">Back to list</string>
+    <string name="new_todo">New Todo</string>
+    <string name="edit_todo">Edit Todo</string>
+    <string name="todo">Todo</string>
+    <string name="choose_reminder_time">Set reminder time</string>
+    <string name="reminder_time">Reminder</string>
+    <string name="reminder_not_set">Not set</string>
+    <string name="set_reminder">Set</string>
+    <string name="todo_field">Todo</string>
+    <string name="section_reminder">Reminders</string>
+    <string name="notif_style_title">Notification style</string>
+    <string name="notif_style_summary">How reminders notify you</string>
+    <string name="notif_style_normal">Normal notification</string>
+    <string name="notif_style_live">Live update (Android 16+)</string>
+    <string name="mark_done">Done</string>
+    <string name="reminder_reached">Reminder: %1$s</string>
 </resources>

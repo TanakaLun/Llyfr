@@ -66,8 +66,10 @@ fun Home(
     mainPagerState: MainPagerState,
     onEditNote: (String) -> Unit,
     onEditChecklist: (String) -> Unit,
+    onEditTodo: (String) -> Unit,
     onCreateNote: () -> Unit,
     onCreateChecklist: () -> Unit,
+    onCreateTodo: () -> Unit,
     onAboutClick: () -> Unit,
     settingsViewModel: SettingsViewModel = viewModel(factory = AppViewModelFactory),
 ) {
@@ -137,8 +139,10 @@ fun Home(
                         innerPadding = innerPadding,
                         onEditNote = onEditNote,
                         onEditChecklist = onEditChecklist,
+                        onEditTodo = onEditTodo,
                         onCreateNote = onCreateNote,
                         onCreateChecklist = onCreateChecklist,
+                        onCreateTodo = onCreateTodo,
                     )
                     1 -> SettingsPage(
                         innerPadding = innerPadding,

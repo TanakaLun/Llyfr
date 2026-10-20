@@ -2,7 +2,7 @@ package io.github.tanakalun.llyfr.data.model
 
 import java.util.UUID
 
-enum class NoteType { Note, Checklist }
+enum class NoteType { Note, Checklist, Todo }
 
 data class CheckItem(
     val id: String,
@@ -21,6 +21,7 @@ data class Note(
     val pinned: Boolean = false,
     val createdAt: Long,
     val updatedAt: Long,
+    val reminderAt: Long = 0L,
     val unreadable: Boolean = false,
 ) {
     companion object {
@@ -62,6 +63,20 @@ data class Note(
                 colorIndex = colorIndex,
                 createdAt = now,
                 updatedAt = now,
+            )
+        }
+
+        fun createTodo(title: String, reminderAt: Long, colorIndex: Int = COLOR_DEFAULT): Note {
+            val now = System.currentTimeMillis()
+            return Note(
+                id = UUID.randomUUID().toString(),
+                type = NoteType.Todo,
+                title = title,
+                content = "",
+                colorIndex = colorIndex,
+                createdAt = now,
+                updatedAt = now,
+                reminderAt = reminderAt,
             )
         }
     }

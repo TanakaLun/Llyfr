@@ -33,6 +33,7 @@ object SettingsStore {
     private const val KEY_ENCRYPT_NOTES = "encryptNotes"
     private const val KEY_SAVE_ON_BACK = "saveOnBack"
     private const val KEY_SWIPE_BACK = "swipeBackEnabled"
+    private const val KEY_REMINDER_NOTIF_STYLE = "reminderNotifStyle"
 
     const val LANG_SYSTEM = 0
     const val LANG_EN = 1
@@ -73,6 +74,8 @@ object SettingsStore {
         private set
     var swipeBackEnabled by mutableStateOf(false)
         private set
+    var reminderNotifStyle by mutableIntStateOf(0)
+        private set
     var language by mutableIntStateOf(LANG_SYSTEM)
         private set
 
@@ -94,9 +97,9 @@ object SettingsStore {
         codeBlockWrap = prefs.getBoolean(KEY_CODE_BLOCK_WRAP, true)
         encryptNotes = prefs.getBoolean(KEY_ENCRYPT_NOTES, true)
         saveOnBack = prefs.getBoolean(KEY_SAVE_ON_BACK, true)
-        swipeBackEnabled = prefs.getBoolean(KEY_SWIPE_BACK, false)
+swipeBackEnabled = prefs.getBoolean(KEY_SWIPE_BACK, false)
+        reminderNotifStyle = prefs.getInt(KEY_REMINDER_NOTIF_STYLE, 0)
         language = prefs.getInt(KEY_LANGUAGE, LANG_SYSTEM)
-        initialized = true
     }
 
     fun updateColorMode(value: Int) {
@@ -172,6 +175,11 @@ object SettingsStore {
     fun updateSwipeBackEnabled(value: Boolean) {
         swipeBackEnabled = value
         prefs.edit().putBoolean(KEY_SWIPE_BACK, value).apply()
+    }
+
+    fun updateReminderNotifStyle(value: Int) {
+        reminderNotifStyle = value
+        prefs.edit().putInt(KEY_REMINDER_NOTIF_STYLE, value).apply()
     }
 
     fun updateLanguage(context: Context, value: Int) {

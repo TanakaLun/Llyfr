@@ -174,4 +174,19 @@
     <string name="note_unreadable_title">このメモを読み取れません</string>
     <string name="note_unreadable_hint">このメモの内容は端末のキーで暗号化されていますが、そのキーが利用できません。バックアップから復元するか、削除してください。</string>
     <string name="back_to_list">一覧に戻る</string>
+    <string name="new_todo">新しいToDo</string>
+    <string name="edit_todo">ToDoを編集</string>
+    <string name="todo">ToDo</string>
+    <string name="choose_reminder_time">リマインダー時刻を設定</string>
+    <string name="reminder_time">リマインダー</string>
+    <string name="reminder_not_set">未設定</string>
+    <string name="set_reminder">設定</string>
+    <string name="todo_field">ToDo</string>
+    <string name="section_reminder">リマインダー</string>
+    <string name="notif_style_title">通知スタイル</string>
+    <string name="notif_style_summary">リマインダーの通知方法</string>
+    <string name="notif_style_normal">通常の通知</string>
+    <string name="notif_style_live">ライブ更新（Android 16+）</string>
+    <string name="mark_done">完了</string>
+    <string name="reminder_reached">リマインダー：%1$s</string>
 </resources>

@@ -174,4 +174,19 @@
     <string name="note_unreadable_title">无法读取此笔记</string>
     <string name="note_unreadable_hint">其内容使用本机密钥加密，而该密钥已不可用。请从备份恢复，或删除它。</string>
     <string name="back_to_list">返回列表</string>
+    <string name="new_todo">新建待办</string>
+    <string name="edit_todo">编辑待办</string>
+    <string name="todo">待办</string>
+    <string name="choose_reminder_time">设定提醒时间</string>
+    <string name="reminder_time">提醒时间</string>
+    <string name="reminder_not_set">未设置</string>
+    <string name="set_reminder">设置</string>
+    <string name="todo_field">待办内容</string>
+    <string name="section_reminder">提醒</string>
+    <string name="notif_style_title">通知样式</string>
+    <string name="notif_style_summary">提醒到达时的通知方式</string>
+    <string name="notif_style_normal">普通通知</string>
+    <string name="notif_style_live">实时通知（Android 16+）</string>
+    <string name="mark_done">完成</string>
+    <string name="reminder_reached">待办提醒：%1$s</string>
 </resources>

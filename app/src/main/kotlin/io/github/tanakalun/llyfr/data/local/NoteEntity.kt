@@ -39,4 +39,7 @@ data class NoteEntity(
 
     @ColumnInfo(name = "unreadable", defaultValue = "0")
     val unreadable: Int,
+
+    @ColumnInfo(name = "reminder_at", defaultValue = "0")
+    val reminderAt: Long = 0L,
 )

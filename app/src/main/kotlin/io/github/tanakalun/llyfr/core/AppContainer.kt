@@ -4,6 +4,7 @@ import android.content.Context
 import io.github.tanakalun.llyfr.data.backup.BackupService
 import io.github.tanakalun.llyfr.data.local.NoteDao
 import io.github.tanakalun.llyfr.data.local.NotesDatabase
+import io.github.tanakalun.llyfr.data.reminder.ReminderScheduler
 import io.github.tanakalun.llyfr.data.repository.NoteRepository
 import io.github.tanakalun.llyfr.data.settings.SettingsStore
 import kotlinx.coroutines.CoroutineScope
@@ -26,4 +27,5 @@ class AppContainer(context: Context) {
         BackupService(appContext, noteRepository, SettingsStore)
     }
     val errorReporter: ErrorReporter by lazy { ErrorReporter(appContext) }
+    val reminderScheduler: ReminderScheduler by lazy { ReminderScheduler(appContext) }
 }

@@ -1,11 +1,15 @@
 package io.github.tanakalun.llyfr.ui.notes
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.tanakalun.llyfr.data.model.Note
 import io.github.tanakalun.llyfr.data.model.NoteType
+import io.github.tanakalun.llyfr.data.reminder.ReminderNotifier
+import io.github.tanakalun.llyfr.data.reminder.ReminderScheduler
 import io.github.tanakalun.llyfr.data.repository.NoteRepository
+import io.github.tanakalun.llyfr.data.settings.SettingsStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +37,8 @@ data class NotesListUiState(
 class NotesListViewModel(
     private val repo: NoteRepository,
     savedStateHandle: SavedStateHandle,
+    private val appContext: Context,
+    private val reminderScheduler: ReminderScheduler,
 ) : ViewModel() {
 
     private val queryFlow = MutableStateFlow(savedStateHandle.get<String>("listQuery") ?: "")
@@ -41,6 +47,17 @@ class NotesListViewModel(
     val uiState: StateFlow<NotesListUiState> = _uiState.asStateFlow()
 
     init {
+        // 启动时重排未过期待办提醒（AlarmManager 在强制停止后会被清空）
+        viewModelScope.launch {
+            val now = System.currentTimeMillis()
+            repo.getAllOnce()
+                .filter { it.type == NoteType.Todo && it.reminderAt > now }
+                .forEach {
+                    reminderScheduler.schedule(
+                        it.id, it.title, it.reminderAt, SettingsStore.reminderNotifStyle,
+                    )
+                }
+        }
         viewModelScope.launch {
             queryFlow
                 .onEach { q -> _uiState.update { it.copy(query = q) } }
@@ -108,6 +125,10 @@ class NotesListViewModel(
         if (ids.isEmpty()) return
         viewModelScope.launch {
             repo.deleteAll(ids)
+            ids.forEach {
+                reminderScheduler.cancel(it)
+                ReminderNotifier.cancel(appContext, it)
+            }
             exitSelection()
         }
     }

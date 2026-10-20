@@ -173,5 +173,6 @@ class SettingsViewModel(
     fun updateEncryptNotes(value: Boolean) = SettingsStore.updateEncryptNotes(value)
     fun updateSaveOnBack(value: Boolean) = SettingsStore.updateSaveOnBack(value)
     fun updateSwipeBackEnabled(value: Boolean) = SettingsStore.updateSwipeBackEnabled(value)
+    fun updateReminderNotifStyle(value: Int) = SettingsStore.updateReminderNotifStyle(value)
     fun updateLanguage(value: Int) = SettingsStore.updateLanguage(appContext, value)
 }

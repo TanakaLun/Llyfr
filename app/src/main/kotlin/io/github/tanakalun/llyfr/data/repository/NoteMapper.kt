@@ -40,6 +40,7 @@ class NoteMapper(
             pinned = e.pinned != 0,
             createdAt = e.createdAt,
             updatedAt = e.updatedAt,
+            reminderAt = e.reminderAt,
             unreadable = unreadable || itemsUnreadable,
         )
     }
@@ -55,6 +56,7 @@ class NoteMapper(
         pinned = if (note.pinned) 1 else 0,
         createdAt = note.createdAt,
         updatedAt = note.updatedAt,
+        reminderAt = note.reminderAt,
         unreadable = 0,
     )
 }

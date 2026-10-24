@@ -150,6 +150,9 @@
     <string name="choose_item_type">Choose item type</string>
     <string name="note">Note</string>
     <string name="checklist">Checklist</string>
+    <string name="new_item_note_summary">Write something down</string>
+    <string name="new_item_checklist_summary">A list of checkable items</string>
+    <string name="new_item_todo_summary">One task with a reminder</string>
 
     <!-- Snackbar / export -->
     <string name="export_success">Exported %1$d bytes successfully</string>

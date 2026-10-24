@@ -148,6 +148,9 @@
     <string name="choose_item_type">选择类型</string>
     <string name="note">笔记</string>
     <string name="checklist">清单</string>
+    <string name="new_item_note_summary">随手记录一段文字</string>
+    <string name="new_item_checklist_summary">可勾选的项目列表</string>
+    <string name="new_item_todo_summary">单条任务 + 提醒</string>
 
     <!-- Snackbar / export -->
     <string name="export_success">成功导出 %1$d 字节</string>

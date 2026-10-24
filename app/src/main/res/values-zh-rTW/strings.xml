@@ -148,6 +148,9 @@
     <string name="choose_item_type">選擇類型</string>
     <string name="note">筆記</string>
     <string name="checklist">清單</string>
+    <string name="new_item_note_summary">隨手記錄一段文字</string>
+    <string name="new_item_checklist_summary">可勾選的項目清單</string>
+    <string name="new_item_todo_summary">單一任務 + 提醒</string>
 
     <!-- Snackbar / export -->
     <string name="export_success">成功匯出 %1$d 位元組</string>

@@ -25,6 +25,7 @@ android {
         targetSdk = 37
         versionCode = 45
         versionName = "1.3.2"
+    }
     
     packaging {
         resources {

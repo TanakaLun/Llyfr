@@ -44,6 +44,7 @@ import io.github.tanakalun.llyfr.ui.util.BlurredBar
 import io.github.tanakalun.llyfr.ui.util.rememberBlurBackdrop
 import io.github.tanakalun.llyfr.util.stripMarkdown
 import top.yukonga.miuix.kmp.blur.layerBackdrop
+import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardColors
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
@@ -63,8 +64,11 @@ import top.yukonga.miuix.kmp.icon.extended.Image
 import top.yukonga.miuix.kmp.icon.extended.Ok
 import top.yukonga.miuix.kmp.icon.extended.Pin
 import top.yukonga.miuix.kmp.icon.extended.Alarm
+import top.yukonga.miuix.kmp.icon.extended.Edit
 import top.yukonga.miuix.kmp.icon.extended.Tasks
+import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 import java.text.SimpleDateFormat
@@ -142,65 +146,6 @@ fun NotesListPage(
             TextButton(
                 text = stringResource(R.string.cancel),
                 onClick = { showBatchDialog = false },
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-    }
-
-    OverlayDialog(
-        show = showNewDialog,
-        title = stringResource(R.string.new_item),
-        summary = stringResource(R.string.choose_item_type),
-        onDismissRequest = { showNewDialog = false },
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                TextButton(
-                    text = stringResource(R.string.note),
-                    onClick = {
-                        showNewDialog = false
-                        onCreateNote()
-                    },
-                    modifier = Modifier.weight(1f),
-                    colors = TextButtonColors(
-                        color = MiuixTheme.colorScheme.primary,
-                        disabledColor = MiuixTheme.colorScheme.primaryContainer,
-                        textColor = MiuixTheme.colorScheme.onPrimary,
-                        disabledTextColor = MiuixTheme.colorScheme.onPrimaryContainer,
-                    ),
-                )
-                TextButton(
-                    text = stringResource(R.string.checklist),
-                    onClick = {
-                        showNewDialog = false
-                        onCreateChecklist()
-                    },
-                    modifier = Modifier.weight(1f),
-                    colors = TextButtonColors(
-                        color = MiuixTheme.colorScheme.primary,
-                        disabledColor = MiuixTheme.colorScheme.primaryContainer,
-                        textColor = MiuixTheme.colorScheme.onPrimary,
-                        disabledTextColor = MiuixTheme.colorScheme.onPrimaryContainer,
-                    ),
-                )
-                TextButton(
-                    text = stringResource(R.string.todo),
-                    onClick = {
-                        showNewDialog = false
-                        onCreateTodo()
-                    },
-                    modifier = Modifier.weight(1f),
-                    colors = TextButtonColors(
-                        color = MiuixTheme.colorScheme.primary,
-                        disabledColor = MiuixTheme.colorScheme.primaryContainer,
-                        textColor = MiuixTheme.colorScheme.onPrimary,
-                        disabledTextColor = MiuixTheme.colorScheme.onPrimaryContainer,
-                    ),
-                )
-            }
-            TextButton(
-                text = stringResource(R.string.cancel),
-                onClick = { showNewDialog = false },
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -342,6 +287,79 @@ fun NotesListPage(
                 }
 
                 item { Spacer(modifier = Modifier.height(8.dp)) }
+            }
+
+            OverlayBottomSheet(
+                show = showNewDialog,
+                title = stringResource(R.string.new_item),
+                startAction = {
+                    IconButton(onClick = { showNewDialog = false }) {
+                        Icon(
+                            imageVector = MiuixIcons.Close,
+                            contentDescription = stringResource(R.string.cancel),
+                        )
+                    }
+                },
+                onDismissRequest = { showNewDialog = false },
+            ) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    colors = CardDefaults.defaultColors(
+                        color = MiuixTheme.colorScheme.surface,
+                        contentColor = MiuixTheme.colorScheme.onSurface,
+                    ),
+                ) {
+                    ArrowPreference(
+                        title = stringResource(R.string.note),
+                        summary = stringResource(R.string.new_item_note_summary),
+                        startAction = {
+                            Box(modifier = Modifier.padding(end = 8.dp)) {
+                                Icon(
+                                    imageVector = MiuixIcons.Edit,
+                                    contentDescription = null,
+                                )
+                            }
+                        },
+                        onClick = {
+                            showNewDialog = false
+                            onCreateNote()
+                        },
+                    )
+                    ArrowPreference(
+                        title = stringResource(R.string.checklist),
+                        summary = stringResource(R.string.new_item_checklist_summary),
+                        startAction = {
+                            Box(modifier = Modifier.padding(end = 8.dp)) {
+                                Icon(
+                                    imageVector = MiuixIcons.Tasks,
+                                    contentDescription = null,
+                                )
+                            }
+                        },
+                        onClick = {
+                            showNewDialog = false
+                            onCreateChecklist()
+                        },
+                    )
+                    ArrowPreference(
+                        title = stringResource(R.string.todo),
+                        summary = stringResource(R.string.new_item_todo_summary),
+                        startAction = {
+                            Box(modifier = Modifier.padding(end = 8.dp)) {
+                                Icon(
+                                    imageVector = MiuixIcons.Alarm,
+                                    contentDescription = null,
+                                )
+                            }
+                        },
+                        onClick = {
+                            showNewDialog = false
+                            onCreateTodo()
+                        },
+                    )
+                }
             }
 
             if (!selectionMode) {

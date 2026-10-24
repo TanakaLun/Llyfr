@@ -1,7 +1,6 @@
 package io.github.tanakalun.llyfr.ui.about
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +33,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -70,6 +70,7 @@ import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
+import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 import io.github.tanakalun.llyfr.ui.isInDarkTheme
@@ -222,27 +223,32 @@ private fun AboutContent(
                 },
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            // 桌面 adaptive icon 以 1.5 倍绘制图层，About 页保持同尺度（见下方 Image）
+            val iconSize = 88.dp
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .size(88.dp)
+                    .size(iconSize)
                     .graphicsLayer {
                         val iconProgress = ((scrollProgressProvider() - 0.35f) / 0.15f).coerceIn(0f, 1f)
-                        clip = true
-                        shape = RoundedCornerShape(24.dp)
                         alpha = 1 - iconProgress
                         scaleX = 1 - (iconProgress * 0.05f)
                         scaleY = 1 - (iconProgress * 0.05f)
                     }
-                    // .background(Color(0xFFF5F5F5)),
-                    .background(Color.White),
+                    // HyperOS 超椭圆裁剪 + 底色，曲率与 miuix Card 一致
+                    .squircleSurface(
+                        color = colorResource(R.color.launcher_background),
+                        cornerRadius = CardDefaults.CornerRadius,
+                    ),
             ) {
                 Image(
                     modifier = Modifier
-                        .size(74.dp)
+                        .fillMaxSize()
                         .graphicsLayer {
-                            shape = RoundedCornerShape(24.dp)
-                            clip = true
+                            // 桌面 adaptive icon 以 1.5 倍绘制图层（DEFAULT_VIEWPORT_SCALE），
+                            // 这里保持一致，让 About 页图标与桌面显示同尺度
+                            scaleX = 1.5f
+                            scaleY = 1.5f
                         },
                     painter = painterResource(R.drawable.ic_launcher_foreground),
                     contentDescription = null,

@@ -148,6 +148,9 @@
     <string name="choose_item_type">種類を選択</string>
     <string name="note">メモ</string>
     <string name="checklist">チェックリスト</string>
+    <string name="new_item_note_summary">思いついたことを書き留める</string>
+    <string name="new_item_checklist_summary">チェックできる項目のリスト</string>
+    <string name="new_item_todo_summary">リマインダー付きのタスク 1 件</string>
 
     <!-- Snackbar / export -->
     <string name="export_success">%1$d バイトをエクスポートしました</string>

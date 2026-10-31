@@ -7,6 +7,7 @@ import coil3.SingletonImageLoader
 import coil3.request.crossfade
 import io.github.tanakalun.llyfr.core.AppContainer
 import io.github.tanakalun.llyfr.core.PowerSaveModeTracker
+import io.github.tanakalun.llyfr.data.reminder.ReminderNotifier
 import io.github.tanakalun.llyfr.data.settings.SettingsStore
 
 class LlyfrApplication : Application(), SingletonImageLoader.Factory {
@@ -19,6 +20,7 @@ class LlyfrApplication : Application(), SingletonImageLoader.Factory {
         AppContainer(this).also { container = it }
         SettingsStore.init(this)
         PowerSaveModeTracker.init(this)
+        ReminderNotifier.ensureChannel(this)
     }
 
     override fun newImageLoader(context: Context): ImageLoader {

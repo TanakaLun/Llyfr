@@ -9,16 +9,27 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.tanakalun.llyfr.R
+import io.github.tanakalun.llyfr.data.reminder.ReminderNotifier
+import io.github.tanakalun.llyfr.data.reminder.ReminderScheduler
 import io.github.tanakalun.llyfr.ui.util.adaptiveContentWindowInsets
+import io.github.tanakalun.llyfr.ui.util.openExactAlarmSettings
+import io.github.tanakalun.llyfr.ui.util.openNotificationSettings
 import io.github.tanakalun.llyfr.LocalIsWideScreen
 import io.github.tanakalun.llyfr.core.PowerSaveModeTracker
 import io.github.tanakalun.llyfr.data.settings.SettingsStore
@@ -129,6 +140,21 @@ fun SettingsPage(
     val saveOnBack = SettingsStore.saveOnBack
     val swipeBackEnabled = SettingsStore.swipeBackEnabled
     val reminderNotifStyle = SettingsStore.reminderNotifStyle
+
+    // 权限状态在从系统设置返回后需要刷新（ON_RESUME），否则页面会一直显示旧值。
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var notificationsEnabled by remember { mutableStateOf(ReminderNotifier.hasPermission(context)) }
+    var exactAlarmAllowed by remember { mutableStateOf(ReminderScheduler.canScheduleExactAlarms(context)) }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                notificationsEnabled = ReminderNotifier.hasPermission(context)
+                exactAlarmAllowed = ReminderScheduler.canScheduleExactAlarms(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     Scaffold(
         contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
@@ -311,6 +337,20 @@ fun SettingsPage(
                             title = stringResource(R.string.notif_style_title),
                             summary = stringResource(R.string.notif_style_summary),
                             onSelectedIndexChange = { viewModel.updateReminderNotifStyle(it) },
+                        )
+                        ArrowPreference(
+                            title = stringResource(R.string.notification_permission_title),
+                            summary = stringResource(
+                                if (notificationsEnabled) R.string.permission_granted else R.string.permission_denied,
+                            ),
+                            onClick = { context.openNotificationSettings() },
+                        )
+                        ArrowPreference(
+                            title = stringResource(R.string.exact_alarm_title),
+                            summary = stringResource(
+                                if (exactAlarmAllowed) R.string.permission_granted else R.string.permission_denied,
+                            ),
+                            onClick = { context.openExactAlarmSettings() },
                         )
                     }
                 }

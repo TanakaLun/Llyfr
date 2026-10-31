@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +52,15 @@ fun DateTimePickerSheet(
     var hour by remember { mutableIntStateOf(default.get(Calendar.HOUR_OF_DAY)) }
     var minute by remember { mutableIntStateOf(default.get(Calendar.MINUTE)) }
     val curYear = remember { Calendar.getInstance().get(Calendar.YEAR) }
+    // 编辑往年提醒时，初始年份可能小于当前年，年份选择范围要包含它。
+    val minYear = remember { minOf(curYear, default.get(Calendar.YEAR)) }
+    // 当月真实天数：避免「2 月 31 日」被 Calendar 宽容模式静默滚到下个月。
+    val daysInMonth = remember(year, month) {
+        Calendar.getInstance().apply { set(year, month - 1, 1) }.getActualMaximum(Calendar.DAY_OF_MONTH)
+    }
+    LaunchedEffect(daysInMonth) {
+        if (day > daysInMonth) day = daysInMonth
+    }
 
     OverlayBottomSheet(
         show = show,
@@ -95,7 +105,7 @@ fun DateTimePickerSheet(
                 NumberPicker(
                     value = year,
                     onValueChange = { year = it },
-                    range = curYear..curYear + 20,
+                    range = minYear..curYear + 20,
                     label = { it.toString() },
                     wrapAround = false,
                     modifier = Modifier.weight(1f),
@@ -113,7 +123,7 @@ fun DateTimePickerSheet(
                 NumberPicker(
                     value = day,
                     onValueChange = { day = it },
-                    range = 1..31,
+                    range = 1..daysInMonth,
                     label = { it.toString().padStart(2, '0') },
                     wrapAround = true,
                     modifier = Modifier.weight(1f),

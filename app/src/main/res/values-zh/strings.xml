@@ -190,6 +190,12 @@
     <string name="notif_style_summary">提醒到达时的通知方式</string>
     <string name="notif_style_normal">普通通知</string>
     <string name="notif_style_live">实时通知（Android 16+）</string>
-    <string name="mark_done">完成</string>
+    <string name="mark_done">删除</string>
     <string name="reminder_reached">待办提醒：%1$s</string>
+    <string name="channel_todo_reminders">待办提醒</string>
+    <string name="channel_todo_reminders_description">待办提醒到点时的通知</string>
+    <string name="notification_permission_title">通知权限</string>
+    <string name="exact_alarm_title">精确闹钟</string>
+    <string name="permission_granted">已允许</string>
+    <string name="permission_denied">未允许，点按前往设置</string>
 </resources>

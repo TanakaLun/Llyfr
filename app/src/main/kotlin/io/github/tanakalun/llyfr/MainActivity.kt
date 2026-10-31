@@ -1,5 +1,6 @@
 package io.github.tanakalun.llyfr
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
@@ -12,14 +13,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import io.github.tanakalun.llyfr.data.reminder.ReminderExtras
+import io.github.tanakalun.llyfr.data.reminder.ReminderNotifier
 import io.github.tanakalun.llyfr.data.settings.SettingsStore
 import io.github.tanakalun.llyfr.ui.AppTheme
 
 class MainActivity : ComponentActivity() {
+
+    /** 通知点击带来的待办 id，交给 AppContent 导航后清空。 */
+    private var pendingTodoId by mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        pendingTodoId = intent?.getStringExtra(ReminderExtras.EXTRA_NOTE_ID)
+        ReminderNotifier.ensureChannel(this)
 
         setContent {
             val colorMode = SettingsStore.colorMode
@@ -46,8 +56,17 @@ class MainActivity : ComponentActivity() {
                 paletteStyle = SettingsStore.paletteStyle,
                 colorSpec = SettingsStore.colorSpec,
             ) {
-                AppContent()
+                AppContent(
+                    pendingTodoId = pendingTodoId,
+                    onPendingTodoConsumed = { pendingTodoId = null },
+                )
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        pendingTodoId = intent.getStringExtra(ReminderExtras.EXTRA_NOTE_ID)
     }
 }

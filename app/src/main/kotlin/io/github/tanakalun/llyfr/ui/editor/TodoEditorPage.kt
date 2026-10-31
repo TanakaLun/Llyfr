@@ -1,5 +1,8 @@
 package io.github.tanakalun.llyfr.ui.editor
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -36,6 +40,7 @@ import io.github.tanakalun.llyfr.R
 import io.github.tanakalun.llyfr.core.AppViewModelFactory
 import io.github.tanakalun.llyfr.core.LocalOnBackSink
 import io.github.tanakalun.llyfr.data.model.Note
+import io.github.tanakalun.llyfr.data.reminder.ReminderNotifier
 import io.github.tanakalun.llyfr.data.settings.SettingsStore
 import io.github.tanakalun.llyfr.LocalNavigator
 import io.github.tanakalun.llyfr.ui.util.BackNavigationIcon
@@ -79,6 +84,11 @@ fun TodoEditorPage(
 
     var showPicker by remember { mutableStateOf(false) }
     var pendingSave by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    // 用户真正设置提醒时才申请通知权限：此时上下文最清晰，被拒后设置页仍有入口。
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) {}
 
     fun requestSave() {
         if (uiState.reminderAt == 0L) {
@@ -254,6 +264,9 @@ fun TodoEditorPage(
                 initialMillis = uiState.reminderAt.takeIf { it > 0L },
                 onConfirm = { at ->
                     viewModel.setReminder(at)
+                    if (!ReminderNotifier.hasPermission(context)) {
+                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
                     showPicker = false
                     if (pendingSave) {
                         pendingSave = false

@@ -43,7 +43,13 @@ object AppViewModelFactory : ViewModelProvider.Factory {
                 TodoEditorViewModel(container.noteRepository, container.reminderScheduler, container.appScope)
 
             modelClass.isAssignableFrom(SettingsViewModel::class.java) ->
-                SettingsViewModel(container.backupService, container.errorReporter, container.appContext)
+                SettingsViewModel(
+                    container.backupService,
+                    container.errorReporter,
+                    container.appContext,
+                    container.noteRepository,
+                    container.reminderScheduler,
+                )
 
             modelClass.isAssignableFrom(LicenseViewModel::class.java) ->
                 LicenseViewModel(container.appContext)

@@ -190,6 +190,12 @@
     <string name="notif_style_summary">リマインダーの通知方法</string>
     <string name="notif_style_normal">通常の通知</string>
     <string name="notif_style_live">ライブ更新（Android 16+）</string>
-    <string name="mark_done">完了</string>
+    <string name="mark_done">削除</string>
     <string name="reminder_reached">リマインダー：%1$s</string>
+    <string name="channel_todo_reminders">ToDoリマインダー</string>
+    <string name="channel_todo_reminders_description">ToDoのリマインダー時刻になったときの通知</string>
+    <string name="notification_permission_title">通知の権限</string>
+    <string name="exact_alarm_title">正確なアラーム</string>
+    <string name="permission_granted">許可済み</string>
+    <string name="permission_denied">未許可 — タップして設定を開く</string>
 </resources>

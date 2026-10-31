@@ -37,6 +37,7 @@ import io.github.tanakalun.llyfr.ui.navigation.Navigator
 import io.github.tanakalun.llyfr.ui.navigation.Route
 import io.github.tanakalun.llyfr.ui.util.shouldExpandNavigationRail
 import io.github.tanakalun.llyfr.ui.util.shouldShowSplitPane
+import io.github.tanakalun.llyfr.ui.util.RequestNotificationPermissionOnStart
 import io.github.tanakalun.llyfr.ui.viewer.ImageViewerPage
 import top.yukonga.miuix.kmp.basic.NavigationItem
 import top.yukonga.miuix.kmp.basic.NavigationRail
@@ -61,9 +62,22 @@ val LocalMainPagerState = staticCompositionLocalOf<MainPagerState> { error("Loca
 val LocalIsWideScreen = staticCompositionLocalOf { false }
 
 @Composable
-fun AppContent() {
+fun AppContent(
+    pendingTodoId: String? = null,
+    onPendingTodoConsumed: () -> Unit = {},
+) {
     val backStack = rememberNavBackStack<Route>(Route.NotesList)
     val navigator = remember { Navigator(backStack) }
+
+    // 通知权限运行时申请（Android 13+ 默认拒绝）。
+    RequestNotificationPermissionOnStart()
+
+    // 点击提醒通知 → 直接打开对应待办。
+    LaunchedEffect(pendingTodoId) {
+        val noteId = pendingTodoId ?: return@LaunchedEffect
+        navigator.push(Route.TodoEditor(noteId))
+        onPendingTodoConsumed()
+    }
 
     val pagerState = rememberPagerState(pageCount = { 2 })
     val mainPagerState = rememberMainPagerState(pagerState)

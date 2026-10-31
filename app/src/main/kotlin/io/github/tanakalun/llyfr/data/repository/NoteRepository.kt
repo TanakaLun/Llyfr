@@ -40,8 +40,9 @@ class NoteRepository(
         dao.getById(id)?.let(mapper::entityToNote)
     }
 
-    suspend fun getAllOnce(): List<Note> = withContext(Dispatchers.Default) {
-        notes.value
+    /** 真实查库的一次性快照（[notes] 是 WhileSubscribed，无订阅者时 value 恒为空）。 */
+    suspend fun getAllOnce(): List<Note> = withContext(Dispatchers.IO) {
+        dao.getAllOnce().map(mapper::entityToNote)
     }
 
     suspend fun search(query: String): List<Note> = withContext(Dispatchers.Default) {

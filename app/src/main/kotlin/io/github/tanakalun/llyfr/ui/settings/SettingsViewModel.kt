@@ -9,6 +9,9 @@ import io.github.tanakalun.llyfr.core.ErrorReporter
 import io.github.tanakalun.llyfr.data.backup.BackupFormatKind
 import io.github.tanakalun.llyfr.data.backup.BackupService
 import io.github.tanakalun.llyfr.data.crypto.WrongBackupPasswordException
+import io.github.tanakalun.llyfr.data.model.NoteType
+import io.github.tanakalun.llyfr.data.reminder.ReminderScheduler
+import io.github.tanakalun.llyfr.data.repository.NoteRepository
 import io.github.tanakalun.llyfr.data.settings.SettingsStore
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,6 +44,8 @@ class SettingsViewModel(
     private val backupService: BackupService,
     private val errorReporter: ErrorReporter,
     private val appContext: Context,
+    private val noteRepository: NoteRepository,
+    private val reminderScheduler: ReminderScheduler,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -173,6 +178,18 @@ class SettingsViewModel(
     fun updateEncryptNotes(value: Boolean) = SettingsStore.updateEncryptNotes(value)
     fun updateSaveOnBack(value: Boolean) = SettingsStore.updateSaveOnBack(value)
     fun updateSwipeBackEnabled(value: Boolean) = SettingsStore.updateSwipeBackEnabled(value)
-    fun updateReminderNotifStyle(value: Int) = SettingsStore.updateReminderNotifStyle(value)
+
+    /** 通知样式写在闹钟 PendingIntent 的 extra 里，切换后必须重排，否则已排定的提醒仍是旧样式。 */
+    fun updateReminderNotifStyle(value: Int) {
+        SettingsStore.updateReminderNotifStyle(value)
+        viewModelScope.launch {
+            val now = System.currentTimeMillis()
+            noteRepository.getAllOnce()
+                .filter { it.type == NoteType.Todo && it.reminderAt > now }
+                .forEach {
+                    reminderScheduler.schedule(it.id, it.title, it.reminderAt, value)
+                }
+        }
+    }
     fun updateLanguage(value: Int) = SettingsStore.updateLanguage(appContext, value)
 }

@@ -35,8 +35,11 @@ class TodoEditorViewModel(
     private var existing: Note? = null
 
     fun load(noteId: String) {
-        if (this.noteId.isNotEmpty()) return
+        // ViewModel 可能是 Activity 级复用：目标变化时必须重置并重新加载，否则会把上一条待办的内容覆盖回去。
+        if (this.noteId == noteId && !_uiState.value.loading) return
         this.noteId = noteId
+        existing = null
+        _uiState.value = TodoEditorUiState()
         viewModelScope.launch {
             val existingNote = if (noteId.isNotBlank()) repo.getById(noteId) else null
             existing = existingNote

@@ -192,6 +192,12 @@
     <string name="notif_style_summary">How reminders notify you</string>
     <string name="notif_style_normal">Normal notification</string>
     <string name="notif_style_live">Live update (Android 16+)</string>
-    <string name="mark_done">Done</string>
+    <string name="mark_done">Delete</string>
     <string name="reminder_reached">Reminder: %1$s</string>
+    <string name="channel_todo_reminders">Todo reminders</string>
+    <string name="channel_todo_reminders_description">Notifications when a todo reminder is due</string>
+    <string name="notification_permission_title">Notification permission</string>
+    <string name="exact_alarm_title">Exact alarms</string>
+    <string name="permission_granted">Allowed</string>
+    <string name="permission_denied">Not allowed — tap to open settings</string>
 </resources>

@@ -380,12 +380,13 @@ fun ChecklistPage(
                         )
 
                         if (deleteMode) {
+                            // 这一行在内容采样层内部：不能再把 layer 作为采样源，否则玻璃按钮
+                            // 会采样到包含自己的 RenderNode，导致渲染树自引用。
                             AppIconButton(
                                 icon = MiuixIcons.Delete,
                                 contentDescription = stringResource(R.string.delete),
                                 onClick = { itemToDelete = item },
                                 tint = MiuixTheme.colorScheme.error,
-                                backdrop = backdrop,
                             )
                         }
                     }

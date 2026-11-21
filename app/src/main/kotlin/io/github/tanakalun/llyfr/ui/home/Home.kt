@@ -42,7 +42,6 @@ import io.github.tanakalun.llyfr.ui.settings.SettingsPage
 import io.github.tanakalun.llyfr.ui.settings.SettingsViewModel
 import io.github.tanakalun.llyfr.ui.util.AppBlur
 import io.github.tanakalun.llyfr.ui.util.isPowerSave
-import io.github.tanakalun.llyfr.ui.components.liquid.IosLiquidGlassNavigationBar
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.FloatingNavigationBar
 import top.yukonga.miuix.kmp.basic.FloatingNavigationBarItem
@@ -134,7 +133,6 @@ fun Home(
                             blurActive = blurActive,
                             barColor = barColor,
                             useFloating = SettingsStore.useFloatingNavbar,
-                            floatingStyle = SettingsStore.floatingNavbarStyle,
                             floatingPosition = SettingsStore.floatingNavbarPosition,
                         )
                     }
@@ -213,21 +211,9 @@ private fun NavigationBarSection(
     blurActive: Boolean,
     barColor: Color,
     useFloating: Boolean,
-    floatingStyle: Int,
     floatingPosition: Int,
 ) {
     if (useFloating) {
-        if (floatingStyle == 1) {
-            IosLiquidGlassNavigationBar(
-                items = navigationItems,
-                selectedIndex = mainPagerState.selectedPage.coerceIn(0, navigationItems.size - 1),
-                onItemClick = { index -> mainPagerState.animateToPage(index) },
-                backdrop = backdrop,
-                isBlurActive = blurActive && backdrop != null,
-            )
-            return
-        }
-
         val floatingColor = if (blurActive) Color.Transparent else MiuixTheme.colorScheme.surfaceContainer
         val floatingShape = RoundedCornerShape(FloatingToolbarDefaults.CornerRadius)
         val isDark = isSystemInDarkTheme()

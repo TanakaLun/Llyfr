@@ -96,12 +96,6 @@ private fun materialEffectOptions(): List<String> = listOf(
 )
 
 @Composable
-private fun navbarStyleOptions(): List<String> = listOf(
-    stringResource(R.string.floating_navbar_style_default),
-    stringResource(R.string.floating_navbar_style_ios),
-)
-
-@Composable
 private fun navbarPositionOptions(): List<String> = listOf(
     stringResource(R.string.navbar_position_center),
     stringResource(R.string.navbar_position_start),
@@ -126,7 +120,6 @@ fun SettingsPage(
     val LanguageOptions = languageOptions()
     val MaterialEffectOptions = materialEffectOptions()
     val BlurStyleOptions = blurStyleOptions()
-    val NavbarStyleOptions = navbarStyleOptions()
     val NavbarPositionOptions = navbarPositionOptions()
 
     val colorMode = SettingsStore.colorMode
@@ -137,7 +130,6 @@ fun SettingsPage(
     val blurStyle = SettingsStore.blurStyle
     val language = SettingsStore.language
     val useFloatingNavbar = SettingsStore.useFloatingNavbar
-    val floatingNavbarStyle = SettingsStore.floatingNavbarStyle
     val floatingNavbarPosition = SettingsStore.floatingNavbarPosition
     val showSearchBar = SettingsStore.showSearchBar
     val enterCreatesItem = SettingsStore.enterCreatesItem
@@ -277,24 +269,13 @@ fun SettingsPage(
                             onCheckedChange = { viewModel.updateSwipeBackEnabled(it) },
                         )
                         AnimatedVisibility(visible = useFloatingNavbar) {
-                            Column {
-                                AppDropdownPreference(
-                                    items = NavbarStyleOptions,
-                                    selectedIndex = floatingNavbarStyle,
-                                    title = stringResource(R.string.floating_navbar_style),
-                                    summary = stringResource(R.string.floating_navbar_style_summary),
-                                    onSelectedIndexChange = { viewModel.updateFloatingNavbarStyle(it) },
-                                )
-                                AnimatedVisibility(visible = floatingNavbarStyle == 0) {
-                                    AppDropdownPreference(
-                                        items = NavbarPositionOptions,
-                                        selectedIndex = floatingNavbarPosition,
-                                        title = stringResource(R.string.navbar_position),
-                                        summary = stringResource(R.string.navbar_position_summary),
-                                        onSelectedIndexChange = { viewModel.updateFloatingNavbarPosition(it) },
-                                    )
-                                }
-                            }
+                            AppDropdownPreference(
+                                items = NavbarPositionOptions,
+                                selectedIndex = floatingNavbarPosition,
+                                title = stringResource(R.string.navbar_position),
+                                summary = stringResource(R.string.navbar_position_summary),
+                                onSelectedIndexChange = { viewModel.updateFloatingNavbarPosition(it) },
+                            )
                         }
                     }
                 }

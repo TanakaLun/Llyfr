@@ -58,7 +58,6 @@ import top.yukonga.miuix.kmp.blur.BlurDefaults
 import top.yukonga.miuix.kmp.blur.LayerBackdrop
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.textureBlur
-import top.yukonga.miuix.kmp.blur.highlight.Highlight
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -216,10 +215,6 @@ private fun NavigationBarSection(
     if (useFloating) {
         val floatingColor = if (blurActive) Color.Transparent else MiuixTheme.colorScheme.surfaceContainer
         val floatingShape = RoundedCornerShape(FloatingToolbarDefaults.CornerRadius)
-        val isDark = isSystemInDarkTheme()
-        val floatingHighlight = remember(isDark) {
-            if (isDark) Highlight.GlassStrokeMiddleDark else Highlight.GlassStrokeMiddleLight
-        }
         FloatingNavigationBar(
             color = floatingColor,
             horizontalAlignment = when (floatingPosition) {
@@ -239,7 +234,6 @@ private fun NavigationBarSection(
                             ),
                         ),
                     ),
-                    highlight = floatingHighlight,
                 )
             } else {
                 Modifier

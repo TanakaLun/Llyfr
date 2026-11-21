@@ -48,17 +48,18 @@ import io.github.tanakalun.llyfr.LocalIsWideScreen
 import io.github.tanakalun.llyfr.LocalNavigator
 import io.github.tanakalun.llyfr.ui.navigation.Route
 import io.github.tanakalun.llyfr.R
+import io.github.tanakalun.llyfr.ui.components.glass.AppBottomSheet
+import io.github.tanakalun.llyfr.ui.components.glass.AppDropdownPreference
+import io.github.tanakalun.llyfr.ui.components.glass.AppTopAppBar
+import io.github.tanakalun.llyfr.ui.components.glass.rememberSurfaceBackdrop
 import io.github.tanakalun.llyfr.ui.components.blend.ColorBlendToken
 import io.github.tanakalun.llyfr.ui.components.effect.BgEffectBackground
 import io.github.tanakalun.llyfr.ui.util.BackNavigationIcon
-import io.github.tanakalun.llyfr.ui.util.BlurredBar
-import io.github.tanakalun.llyfr.ui.util.rememberBlurBackdrop
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
-import top.yukonga.miuix.kmp.basic.SmallTopAppBar
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.blur.BlendColorEntry
 import top.yukonga.miuix.kmp.blur.BlurBlendMode
@@ -66,9 +67,7 @@ import top.yukonga.miuix.kmp.blur.BlurDefaults
 import top.yukonga.miuix.kmp.blur.isRuntimeShaderSupported
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.textureBlur
-import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.preference.ArrowPreference
-import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -100,37 +99,20 @@ fun AboutPage() {
         }
     }
 
-    val backdrop = rememberBlurBackdrop()
-    val collapsed by remember { derivedStateOf { scrollProgress == 1f } }
-    val blurActive by remember(backdrop) { derivedStateOf { backdrop != null && scrollProgress == 1f } }
-
+    val backdrop = rememberSurfaceBackdrop()
     Scaffold(
         contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
         topBar = {
-            val barColor = if (blurActive) {
-                Color.Transparent
-            } else {
-                if (collapsed) MiuixTheme.colorScheme.surface else Color.Transparent
-            }
-            val titleColor = MiuixTheme.colorScheme.onSurface.copy(
-                alpha = ((scrollProgress - 0.35f) / 0.65f).coerceIn(0f, 1f),
-            )
-            BlurredBar(
+            AppTopAppBar(
+                title = stringResource(R.string.about),
                 backdrop = backdrop,
-                blurActive = blurActive,
+                large = false,
                 scrollBehavior = topAppBarScrollBehavior,
-            ) {
-                SmallTopAppBar(
-                    title = stringResource(R.string.about),
-                    scrollBehavior = topAppBarScrollBehavior,
-                    color = barColor,
-                    titleColor = titleColor,
-                    defaultWindowInsetsPadding = false,
-                    navigationIcon = {
-                        BackNavigationIcon(onClick = { navigator.pop() })
-                    },
-                )
-            }
+                defaultWindowInsetsPadding = false,
+                navigationIcon = {
+                    BackNavigationIcon(onClick = { navigator.pop() })
+                },
+            )
         },
     ) { scaffoldPadding ->
         Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {
@@ -159,7 +141,7 @@ private fun AboutContent(
     val uriHandler = LocalUriHandler.current
     val isWideScreen = LocalIsWideScreen.current
 
-    val backdrop = rememberBlurBackdrop()
+    val backdrop = rememberSurfaceBackdrop()
     var isOs3Effect by remember { mutableStateOf(true) }
     var showTextureSet by remember { mutableStateOf(false) }
     var blurRadius by remember { mutableFloatStateOf(60f) }
@@ -424,18 +406,17 @@ private fun AboutContent(
         }
     }
 
-    OverlayBottomSheet(
+    AppBottomSheet(
         show = showTextureSet,
         title = stringResource(R.string.background_effect),
         onDismissRequest = {
             showTextureSet = false
         },
-        insideMargin = DpSize(0.dp, 0.dp),
     ) {
         LazyColumn {
             item {
                 val effectVariantOptions = listOf("OS2", "OS3")
-                OverlayDropdownPreference(
+                AppDropdownPreference(
                     title = stringResource(R.string.effect_variant),
                     items = effectVariantOptions,
                     selectedIndex = if (isOs3Effect) 1 else 0,

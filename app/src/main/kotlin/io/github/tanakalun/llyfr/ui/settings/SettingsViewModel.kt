@@ -167,7 +167,7 @@ class SettingsViewModel(
     fun updateKeyColorIndex(value: Int) = SettingsStore.updateKeyColorIndex(value)
     fun updatePaletteStyle(value: Int) = SettingsStore.updatePaletteStyle(value)
     fun updateColorSpec(value: Int) = SettingsStore.updateColorSpec(value)
-    fun updateEnableBlur(value: Boolean) = SettingsStore.updateEnableBlur(value)
+    fun updateMaterialEffect(value: Int) = SettingsStore.updateMaterialEffect(value)
     fun updateBlurStyle(value: Int) = SettingsStore.updateBlurStyle(value)
     fun updateUseFloatingNavbar(value: Boolean) = SettingsStore.updateUseFloatingNavbar(value)
     fun updateFloatingNavbarStyle(value: Int) = SettingsStore.updateFloatingNavbarStyle(value)

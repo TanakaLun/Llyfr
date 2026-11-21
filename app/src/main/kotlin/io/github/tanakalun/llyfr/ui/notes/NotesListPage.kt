@@ -17,8 +17,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,8 +43,15 @@ import io.github.tanakalun.llyfr.core.AppViewModelFactory
 import io.github.tanakalun.llyfr.data.model.Note
 import io.github.tanakalun.llyfr.data.model.NoteType
 import io.github.tanakalun.llyfr.data.settings.SettingsStore
-import io.github.tanakalun.llyfr.ui.util.BlurredBar
-import io.github.tanakalun.llyfr.ui.util.rememberBlurBackdrop
+import io.github.tanakalun.llyfr.ui.components.glass.AppBottomSheet
+import io.github.tanakalun.llyfr.ui.components.glass.AppButtonRole
+import io.github.tanakalun.llyfr.ui.components.glass.AppDialog
+import io.github.tanakalun.llyfr.ui.components.glass.AppDialogButton
+import io.github.tanakalun.llyfr.ui.components.glass.AppIconButton
+import io.github.tanakalun.llyfr.ui.components.glass.AppSegmentedTabRow
+import io.github.tanakalun.llyfr.ui.components.glass.AppTopAppBar
+import io.github.tanakalun.llyfr.ui.components.glass.isGlassEffectActive
+import io.github.tanakalun.llyfr.ui.components.glass.rememberSurfaceBackdrop
 import io.github.tanakalun.llyfr.util.stripMarkdown
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.basic.Card
@@ -49,25 +59,21 @@ import top.yukonga.miuix.kmp.basic.CardColors
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
 import top.yukonga.miuix.kmp.basic.Icon
-import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.InputField
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.basic.TextButtonColors
-import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.Add
-import top.yukonga.miuix.kmp.icon.extended.Close
+import top.yukonga.miuix.kmp.icon.glass.Add
+import top.yukonga.miuix.kmp.icon.glass.Close
+import top.yukonga.miuix.kmp.icon.glass.Ok
 import top.yukonga.miuix.kmp.icon.extended.Image
 import top.yukonga.miuix.kmp.icon.extended.Ok
 import top.yukonga.miuix.kmp.icon.extended.Pin
 import top.yukonga.miuix.kmp.icon.extended.Alarm
 import top.yukonga.miuix.kmp.icon.extended.Edit
 import top.yukonga.miuix.kmp.icon.extended.Tasks
-import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
-import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.glass.GlassFloatingActionButton
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
@@ -96,13 +102,34 @@ fun NotesListPage(
     var searchActive by remember { mutableStateOf(false) }
     var showBatchDialog by remember { mutableStateOf(false) }
     var showNewDialog by remember { mutableStateOf(false) }
+    var typeFilter by rememberSaveable { mutableIntStateOf(0) }
+    val glass = isGlassEffectActive()
 
-    val backdrop = rememberBlurBackdrop()
-    val barColor = if (backdrop != null) Color.Transparent else MiuixTheme.colorScheme.surface
-
+    val backdrop = rememberSurfaceBackdrop()
     val topAppBarScrollBehavior = MiuixScrollBehavior()
+    val contentUnderTopBar by remember(topAppBarScrollBehavior) {
+        derivedStateOf {
+            topAppBarScrollBehavior.state.contentOffset < -1f ||
+                topAppBarScrollBehavior.state.overscrollOffset < -1f
+        }
+    }
 
-    OverlayDialog(
+    val filterTabs = listOf(
+        stringResource(R.string.filter_all),
+        stringResource(R.string.filter_note),
+        stringResource(R.string.filter_checklist),
+        stringResource(R.string.filter_todo),
+    )
+    val visibleNotes = remember(notes, typeFilter) {
+        when (typeFilter) {
+            1 -> notes.filter { it.type == NoteType.Note }
+            2 -> notes.filter { it.type == NoteType.Checklist }
+            3 -> notes.filter { it.type == NoteType.Todo }
+            else -> notes
+        }
+    }
+
+    AppDialog(
         show = showBatchDialog,
         title = stringResource(R.string.batch_actions),
         summary = pluralStringResource(
@@ -112,84 +139,65 @@ fun NotesListPage(
         ),
         onDismissRequest = { showBatchDialog = false },
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                TextButton(
-                    text = stringResource(R.string.delete),
-                    onClick = {
-                        viewModel.deleteSelected()
-                        showBatchDialog = false
-                    },
-                    modifier = Modifier.weight(1f),
-                    colors = TextButtonColors(
-                        color = MiuixTheme.colorScheme.error,
-                        disabledColor = MiuixTheme.colorScheme.errorContainer,
-                        textColor = MiuixTheme.colorScheme.onError,
-                        disabledTextColor = MiuixTheme.colorScheme.onErrorContainer,
-                    ),
-                )
-                TextButton(
-                    text = stringResource(R.string.pin),
-                    onClick = {
-                        viewModel.togglePinSelected()
-                        showBatchDialog = false
-                    },
-                    modifier = Modifier.weight(1f),
-                    colors = TextButtonColors(
-                        color = MiuixTheme.colorScheme.primary,
-                        disabledColor = MiuixTheme.colorScheme.disabledPrimaryButton,
-                        textColor = MiuixTheme.colorScheme.onPrimary,
-                        disabledTextColor = MiuixTheme.colorScheme.disabledOnPrimaryButton,
-                    ),
-                )
-            }
-            TextButton(
-                text = stringResource(R.string.cancel),
-                onClick = { showBatchDialog = false },
-                modifier = Modifier.fillMaxWidth(),
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            AppDialogButton(
+                text = stringResource(R.string.delete),
+                onClick = {
+                    viewModel.deleteSelected()
+                    showBatchDialog = false
+                },
+                modifier = Modifier.weight(1f),
+                role = AppButtonRole.Destructive,
+            )
+            AppDialogButton(
+                text = stringResource(R.string.pin),
+                onClick = {
+                    viewModel.togglePinSelected()
+                    showBatchDialog = false
+                },
+                modifier = Modifier.weight(1f),
+                role = AppButtonRole.Primary,
             )
         }
+        AppDialogButton(
+            text = stringResource(R.string.cancel),
+            onClick = { showBatchDialog = false },
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 
     Scaffold(
         contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
         topBar = {
-            BlurredBar(
+            AppTopAppBar(
+                title = if (selectionMode) {
+                    pluralStringResource(
+                        R.plurals.selected_count,
+                        selectedIds.size,
+                        selectedIds.size,
+                    )
+                } else {
+                    "Llyfr"
+                },
                 backdrop = backdrop,
+                defaultWindowInsetsPadding = !isWideScreen,
                 scrollBehavior = topAppBarScrollBehavior,
-            ) {
-                TopAppBar(
-                    title = if (selectionMode) {
-                        pluralStringResource(
-                            R.plurals.selected_count,
-                            selectedIds.size,
-                            selectedIds.size,
+                actions = {
+                    if (selectionMode) {
+                        AppIconButton(
+                            icon = if (glass) MiuixIcons.Glass.Close else MiuixIcons.Close,
+                            contentDescription = stringResource(R.string.cancel),
+                            onClick = { viewModel.exitSelection() },
                         )
-                    } else {
-                        "Llyfr"
-                    },
-                    color = barColor,
-                    defaultWindowInsetsPadding = !isWideScreen,
-                    scrollBehavior = topAppBarScrollBehavior,
-                    actions = {
-                        if (selectionMode) {
-                            IconButton(onClick = { viewModel.exitSelection() }) {
-                                Icon(
-                                    imageVector = MiuixIcons.Close,
-                                    contentDescription = stringResource(R.string.cancel),
-                                )
-                            }
-                            IconButton(
-                                onClick = { if (selectedIds.isNotEmpty()) showBatchDialog = true },
-                            ) {
-                                Icon(
-                                    imageVector = MiuixIcons.Ok,
-                                    contentDescription = stringResource(R.string.done),
-                                )
-                            }
-                        }
-                    },
-                    bottomContent = {
+                        AppIconButton(
+                            icon = if (glass) MiuixIcons.Glass.Ok else MiuixIcons.Ok,
+                            contentDescription = stringResource(R.string.done),
+                            onClick = { if (selectedIds.isNotEmpty()) showBatchDialog = true },
+                        )
+                    }
+                },
+                bottomContent = {
+                    Column {
                         if (SettingsStore.showSearchBar) {
                             InputField(
                                 query = searchQuery,
@@ -204,9 +212,20 @@ fun NotesListPage(
                                     .padding(bottom = 6.dp),
                             )
                         }
-                    },
-                )
-            }
+                        AppSegmentedTabRow(
+                            tabs = filterTabs,
+                            selectedIndex = typeFilter,
+                            onSelect = { typeFilter = it },
+                            backdrop = backdrop,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp)
+                                .padding(bottom = 8.dp),
+                            surfaceAlpha = if (contentUnderTopBar) 1f else 0f,
+                        )
+                    }
+                },
+            )
         },
     ) { scaffoldPadding ->
         val topPadding = scaffoldPadding.calculateTopPadding()
@@ -229,7 +248,7 @@ fun NotesListPage(
                 ),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                if (notes.isEmpty()) {
+                if (visibleNotes.isEmpty()) {
                     item(key = "empty") {
                         Box(
                             modifier = Modifier
@@ -250,7 +269,7 @@ fun NotesListPage(
                     }
                 }
 
-                items(notes, key = { it.id }) { note ->
+                items(visibleNotes, key = { it.id }) { note ->
                     val selected = note.id in selectedIds
                     val handleClick = {
                         if (selectionMode) {
@@ -289,16 +308,15 @@ fun NotesListPage(
                 item { Spacer(modifier = Modifier.height(8.dp)) }
             }
 
-            OverlayBottomSheet(
+            AppBottomSheet(
                 show = showNewDialog,
                 title = stringResource(R.string.new_item),
                 startAction = {
-                    IconButton(onClick = { showNewDialog = false }) {
-                        Icon(
-                            imageVector = MiuixIcons.Close,
-                            contentDescription = stringResource(R.string.cancel),
-                        )
-                    }
+                    AppIconButton(
+                        icon = if (glass) MiuixIcons.Glass.Close else MiuixIcons.Close,
+                        contentDescription = stringResource(R.string.cancel),
+                        onClick = { showNewDialog = false },
+                    )
                 },
                 onDismissRequest = { showNewDialog = false },
             ) {
@@ -363,17 +381,34 @@ fun NotesListPage(
             }
 
             if (!selectionMode) {
-                FloatingActionButton(
-                    onClick = { showNewDialog = true },
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 12.dp, bottom = bottomPadding + 12.dp),
-                ) {
-                    Icon(
-                        imageVector = MiuixIcons.Add,
-                        contentDescription = stringResource(R.string.new_item),
-                        tint = MiuixTheme.colorScheme.onPrimary,
-                    )
+                if (glass) {
+                    GlassFloatingActionButton(
+                        onClick = { showNewDialog = true },
+                        backdrop = backdrop,
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(end = 12.dp, bottom = bottomPadding + 12.dp),
+                    ) {
+                        Icon(
+                            imageVector = MiuixIcons.Glass.Add,
+                            contentDescription = stringResource(R.string.new_item),
+                            modifier = Modifier.size(24.dp),
+                            tint = MiuixTheme.colorScheme.onSurface,
+                        )
+                    }
+                } else {
+                    FloatingActionButton(
+                        onClick = { showNewDialog = true },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(end = 12.dp, bottom = bottomPadding + 12.dp),
+                    ) {
+                        Icon(
+                            imageVector = MiuixIcons.Add,
+                            contentDescription = stringResource(R.string.new_item),
+                            tint = MiuixTheme.colorScheme.onPrimary,
+                        )
+                    }
                 }
             }
         }

@@ -42,21 +42,25 @@ import io.github.tanakalun.llyfr.core.LocalOnBackSink
 import io.github.tanakalun.llyfr.data.model.Note
 import io.github.tanakalun.llyfr.data.reminder.ReminderNotifier
 import io.github.tanakalun.llyfr.data.settings.SettingsStore
+import io.github.tanakalun.llyfr.ui.components.glass.AppIconButton
+import io.github.tanakalun.llyfr.ui.components.glass.AppTopAppBar
+import io.github.tanakalun.llyfr.ui.components.glass.isGlassEffectActive
+import io.github.tanakalun.llyfr.ui.components.glass.rememberSurfaceBackdrop
 import io.github.tanakalun.llyfr.LocalNavigator
 import io.github.tanakalun.llyfr.ui.util.BackNavigationIcon
 import io.github.tanakalun.llyfr.ui.util.adaptiveContentWindowInsets
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
-import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Scaffold
-import top.yukonga.miuix.kmp.basic.SmallTopAppBar
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Lock
+import top.yukonga.miuix.kmp.icon.glass.Ok
 import top.yukonga.miuix.kmp.icon.extended.Ok
 import top.yukonga.miuix.kmp.icon.extended.Alarm
 import top.yukonga.miuix.kmp.icon.extended.Unlock
+import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -102,6 +106,8 @@ fun TodoEditorPage(
     val title = uiState.title
     val colorIndex = uiState.colorIndex
     val readOnly = uiState.readOnly
+    val backdrop = rememberSurfaceBackdrop()
+    val glass = isGlassEffectActive()
     val reminderText = if (uiState.reminderAt > 0L) {
         SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(uiState.reminderAt))
     } else {
@@ -111,32 +117,38 @@ fun TodoEditorPage(
     Scaffold(
         contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
         topBar = {
-            SmallTopAppBar(
+            AppTopAppBar(
                 title = stringResource(
                     if (uiState.isNew) R.string.new_todo else R.string.edit_todo
                 ),
-                color = MiuixTheme.colorScheme.surface,
+                backdrop = backdrop,
+                large = false,
                 defaultWindowInsetsPadding = !isWideScreen,
                 navigationIcon = {
                     BackNavigationIcon(onClick = ::requestSave)
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.toggleReadOnly() }) {
-                        Icon(
-                            imageVector = if (readOnly) MiuixIcons.Unlock else MiuixIcons.Lock,
-                            contentDescription = stringResource(R.string.read_only),
-                        )
-                    }
-                    IconButton(onClick = ::requestSave) {
-                        Icon(
-                            imageVector = MiuixIcons.Ok,
-                            contentDescription = stringResource(R.string.save),
-                        )
-                    }
+                    AppIconButton(
+                        icon = if (readOnly) MiuixIcons.Unlock else MiuixIcons.Lock,
+                        contentDescription = stringResource(R.string.read_only),
+                        onClick = { viewModel.toggleReadOnly() },
+                        backdrop = backdrop,
+                    )
+                    AppIconButton(
+                        icon = if (glass) MiuixIcons.Glass.Ok else MiuixIcons.Ok,
+                        contentDescription = stringResource(R.string.save),
+                        onClick = ::requestSave,
+                        backdrop = backdrop,
+                    )
                 },
             )
         },
     ) { scaffoldPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .then(if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier),
+        ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -278,6 +290,7 @@ fun TodoEditorPage(
                     pendingSave = false
                 },
             )
+        }
         }
     }
 }

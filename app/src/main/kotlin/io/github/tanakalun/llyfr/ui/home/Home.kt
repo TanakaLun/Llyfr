@@ -5,6 +5,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,7 +26,11 @@ import io.github.tanakalun.llyfr.R
 import io.github.tanakalun.llyfr.core.AppViewModelFactory
 import io.github.tanakalun.llyfr.LocalIsWideScreen
 import io.github.tanakalun.llyfr.data.settings.SettingsStore
-import io.github.tanakalun.llyfr.ui.components.liquid.IosLiquidGlassNavigationBar
+import io.github.tanakalun.llyfr.ui.components.glass.AppNavigationBar
+import io.github.tanakalun.llyfr.ui.components.glass.PageGlassHost
+import io.github.tanakalun.llyfr.ui.components.glass.isBlurEffectActive
+import io.github.tanakalun.llyfr.ui.components.glass.isGlassEffectActive
+import io.github.tanakalun.llyfr.ui.components.glass.rememberSurfaceBackdrop
 import io.github.tanakalun.llyfr.ui.notes.NotesListPage
 import io.github.tanakalun.llyfr.ui.settings.BackupDialogState
 import io.github.tanakalun.llyfr.ui.settings.BusyDialog
@@ -37,7 +42,7 @@ import io.github.tanakalun.llyfr.ui.settings.SettingsPage
 import io.github.tanakalun.llyfr.ui.settings.SettingsViewModel
 import io.github.tanakalun.llyfr.ui.util.AppBlur
 import io.github.tanakalun.llyfr.ui.util.isPowerSave
-import io.github.tanakalun.llyfr.ui.util.rememberBlurBackdrop
+import io.github.tanakalun.llyfr.ui.components.liquid.IosLiquidGlassNavigationBar
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.FloatingNavigationBar
 import top.yukonga.miuix.kmp.basic.FloatingNavigationBarItem
@@ -74,9 +79,9 @@ fun Home(
     settingsViewModel: SettingsViewModel = viewModel(factory = AppViewModelFactory),
 ) {
     val isWideScreen = LocalIsWideScreen.current
-    val backdrop = rememberBlurBackdrop()
-    val powerSave = isPowerSave()
-    val blurActive = SettingsStore.enableBlur && backdrop != null && !powerSave
+    val backdrop = rememberSurfaceBackdrop()
+    val blurActive = isBlurEffectActive() && backdrop != null
+    val glassActive = isGlassEffectActive()
     val barColor = if (blurActive) Color.Transparent else MiuixTheme.colorScheme.surface
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -105,26 +110,37 @@ fun Home(
         if (uri != null) settingsViewModel.onImportUri(uri)
     }
 
-    Scaffold(
-        snackbarHost = {
-            SnackbarHost(state = snackbarHostState)
-        },
-        bottomBar = {
-            // 宽屏由左侧 rail 承担导航，隐藏底部导航条
-            if (!isWideScreen) {
-                NavigationBarSection(
-                    navigationItems = navigationItems,
-                    mainPagerState = mainPagerState,
-                    backdrop = backdrop,
-                    blurActive = blurActive,
-                    barColor = barColor,
-                    useFloating = SettingsStore.useFloatingNavbar,
-                    floatingStyle = SettingsStore.floatingNavbarStyle,
-                    floatingPosition = SettingsStore.floatingNavbarPosition,
-                )
-            }
-        },
-    ) { innerPadding ->
+    PageGlassHost { _ ->
+        Scaffold(
+            snackbarHost = {
+                SnackbarHost(state = snackbarHostState)
+            },
+            bottomBar = {
+                // 宽屏由左侧 rail 承担导航，隐藏底部导航条
+                if (!isWideScreen) {
+                    if (glassActive) {
+                        AppNavigationBar(
+                            items = navigationItems,
+                            selectedIndex = mainPagerState.selectedPage,
+                            onSelect = { mainPagerState.animateToPage(it) },
+                            backdrop = backdrop,
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                        )
+                    } else {
+                        NavigationBarSection(
+                            navigationItems = navigationItems,
+                            mainPagerState = mainPagerState,
+                            backdrop = backdrop,
+                            blurActive = blurActive,
+                            barColor = barColor,
+                            useFloating = SettingsStore.useFloatingNavbar,
+                            floatingStyle = SettingsStore.floatingNavbarStyle,
+                            floatingPosition = SettingsStore.floatingNavbarPosition,
+                        )
+                    }
+                }
+            },
+        ) { innerPadding ->
         Box(
             modifier = Modifier.fillMaxSize().then(
                 if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier
@@ -184,6 +200,7 @@ fun Home(
             BusyOp.Export -> BusyDialog(stringResource(R.string.backup_export_busy))
             BusyOp.Import -> BusyDialog(stringResource(R.string.backup_import_busy))
             null -> Unit
+        }
         }
     }
 }

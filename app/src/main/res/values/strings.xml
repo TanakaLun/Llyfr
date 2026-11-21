@@ -36,6 +36,15 @@
     <string name="blur_effect">Blur Effect</string>
     <string name="blur_effect_summary">Enable backdrop blur for navigation and app bar</string>
     <string name="blur_effect_power_save">Unavailable in battery saver mode</string>
+    <string name="material_effect">Material effect</string>
+    <string name="material_effect_summary">Visual material for bars and cards</string>
+    <string name="effect_none">None</string>
+    <string name="effect_blur">miuix blur</string>
+    <string name="effect_glass">miuix glass</string>
+    <string name="filter_all">All</string>
+    <string name="filter_note">Notes</string>
+    <string name="filter_checklist">Lists</string>
+    <string name="filter_todo">To-dos</string>
     <string name="blur_style">Blur Style</string>
     <string name="blur_style_summary">Choose app bar blur texture style</string>
     <string name="blur_style_gaussian">Gaussian</string>

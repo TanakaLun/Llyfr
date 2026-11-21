@@ -27,8 +27,12 @@ import io.github.tanakalun.llyfr.LocalNavigator
 import io.github.tanakalun.llyfr.ui.util.adaptiveContentWindowInsets
 import io.github.tanakalun.llyfr.R
 import io.github.tanakalun.llyfr.LocalIsWideScreen
+import io.github.tanakalun.llyfr.ui.components.glass.AppTopAppBar
+import io.github.tanakalun.llyfr.ui.components.glass.isGlassEffectActive
 import io.github.tanakalun.llyfr.ui.util.BackNavigationIcon
 import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.blur.layerBackdrop
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 import top.yukonga.miuix.kmp.basic.SmallTopAppBar
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -44,27 +48,54 @@ fun ImageViewerPage(
     var offsetX by remember { mutableFloatStateOf(0f) }
     var offsetY by remember { mutableFloatStateOf(0f) }
 
+    val glass = isGlassEffectActive()
+    // 全屏图片页以纯黑作为采样底，避免玻璃顶栏取到主题 surface 色。
+    val backdrop = if (glass) {
+        rememberLayerBackdrop {
+            drawRect(Color.Black)
+            drawContent()
+        }
+    } else {
+        null
+    }
+
     Scaffold(
         contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
         topBar = {
-            SmallTopAppBar(
-                title = "",
-                color = Color.Black,
-                titleColor = Color.White,
-                defaultWindowInsetsPadding = !isWideScreen,
-                navigationIcon = {
-                    BackNavigationIcon(
-                        onClick = { navigator.pop() },
-                        tint = Color.White,
-                    )
-                },
-            )
+            if (glass) {
+                AppTopAppBar(
+                    title = "",
+                    backdrop = backdrop,
+                    large = false,
+                    defaultWindowInsetsPadding = !isWideScreen,
+                    navigationIcon = {
+                        BackNavigationIcon(
+                            onClick = { navigator.pop() },
+                            tint = Color.White,
+                        )
+                    },
+                )
+            } else {
+                SmallTopAppBar(
+                    title = "",
+                    color = Color.Black,
+                    titleColor = Color.White,
+                    defaultWindowInsetsPadding = !isWideScreen,
+                    navigationIcon = {
+                        BackNavigationIcon(
+                            onClick = { navigator.pop() },
+                            tint = Color.White,
+                        )
+                    },
+                )
+            }
         },
     ) { scaffoldPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
+                .then(if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier)
                 .padding(
                     top = scaffoldPadding.calculateTopPadding(),
                     bottom = scaffoldPadding.calculateBottomPadding(),

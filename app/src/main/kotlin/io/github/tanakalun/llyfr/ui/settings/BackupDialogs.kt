@@ -19,11 +19,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.tanakalun.llyfr.R
+import io.github.tanakalun.llyfr.ui.components.glass.AppButtonRole
+import io.github.tanakalun.llyfr.ui.components.glass.AppDialog
+import io.github.tanakalun.llyfr.ui.components.glass.AppDialogButton
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
-import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -34,7 +35,7 @@ internal fun ExportPasswordDialog(
     var password by remember { mutableStateOf("") }
     var confirm by remember { mutableStateOf("") }
     var mismatch by remember { mutableStateOf(false) }
-    OverlayDialog(
+    AppDialog(
         show = true,
         title = stringResource(R.string.backup_password_export_title),
         summary = stringResource(R.string.backup_password_export_summary),
@@ -77,12 +78,12 @@ internal fun ExportPasswordDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                TextButton(
+                AppDialogButton(
                     text = stringResource(R.string.cancel),
                     onClick = onDismiss,
                     modifier = Modifier.weight(1f),
                 )
-                TextButton(
+                AppDialogButton(
                     text = stringResource(R.string.done),
                     onClick = {
                         if (password == confirm && password.isNotBlank()) {
@@ -92,12 +93,7 @@ internal fun ExportPasswordDialog(
                         }
                     },
                     modifier = Modifier.weight(1f),
-                    colors = top.yukonga.miuix.kmp.basic.TextButtonColors(
-                        color = MiuixTheme.colorScheme.primary,
-                        disabledColor = MiuixTheme.colorScheme.primaryContainer,
-                        textColor = MiuixTheme.colorScheme.onPrimary,
-                        disabledTextColor = MiuixTheme.colorScheme.onPrimaryContainer,
-                    ),
+                    role = AppButtonRole.Primary,
                 )
             }
         }
@@ -110,7 +106,7 @@ internal fun ImportPasswordDialog(
     onDismiss: () -> Unit,
 ) {
     var password by remember { mutableStateOf("") }
-    OverlayDialog(
+    AppDialog(
         show = true,
         title = stringResource(R.string.backup_password_import_title),
         summary = stringResource(R.string.import_data_summary),
@@ -136,21 +132,16 @@ internal fun ImportPasswordDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                TextButton(
+                AppDialogButton(
                     text = stringResource(R.string.cancel),
                     onClick = onDismiss,
                     modifier = Modifier.weight(1f),
                 )
-                TextButton(
+                AppDialogButton(
                     text = stringResource(R.string.done),
                     onClick = { onConfirm(password.toCharArray()) },
                     modifier = Modifier.weight(1f),
-                    colors = top.yukonga.miuix.kmp.basic.TextButtonColors(
-                        color = MiuixTheme.colorScheme.primary,
-                        disabledColor = MiuixTheme.colorScheme.primaryContainer,
-                        textColor = MiuixTheme.colorScheme.onPrimary,
-                        disabledTextColor = MiuixTheme.colorScheme.onPrimaryContainer,
-                    ),
+                    role = AppButtonRole.Primary,
                 )
             }
         }
@@ -163,7 +154,7 @@ internal fun ImportConfirmDialog(
     onConfirm: (Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    OverlayDialog(
+    AppDialog(
         show = true,
         title = stringResource(R.string.import_dialog_title),
         summary = stringResource(R.string.import_dialog_found, count),
@@ -175,17 +166,18 @@ internal fun ImportConfirmDialog(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            TextButton(
+            AppDialogButton(
                 text = stringResource(R.string.import_notes_settings),
                 onClick = { onConfirm(true) },
                 modifier = Modifier.fillMaxWidth(),
+                role = AppButtonRole.Primary,
             )
-            TextButton(
+            AppDialogButton(
                 text = stringResource(R.string.import_notes_only),
                 onClick = { onConfirm(false) },
                 modifier = Modifier.fillMaxWidth(),
             )
-            TextButton(
+            AppDialogButton(
                 text = stringResource(R.string.cancel),
                 onClick = onDismiss,
                 modifier = Modifier.fillMaxWidth(),
@@ -196,9 +188,9 @@ internal fun ImportConfirmDialog(
 
 @Composable
 internal fun BusyDialog(message: String) {
-    OverlayDialog(
+    AppDialog(
         show = true,
-        enableWindowDim = true,
+        onDismissRequest = {},
         content = {
             Column(
                 modifier = Modifier

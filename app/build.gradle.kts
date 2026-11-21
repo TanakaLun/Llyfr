@@ -17,7 +17,11 @@ room3 {
 
 android {
     namespace = "io.github.tanakalun.llyfr"
-    compileSdk = 37
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 2
+        }
+    }
 
     defaultConfig {
         applicationId = "io.github.tanakalun.llyfr"

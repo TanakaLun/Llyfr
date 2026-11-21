@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,6 +28,7 @@ import io.github.tanakalun.llyfr.LocalNavigator
 import io.github.tanakalun.llyfr.ui.util.adaptiveContentWindowInsets
 import io.github.tanakalun.llyfr.R
 import io.github.tanakalun.llyfr.ui.components.glass.AppTopAppBar
+import io.github.tanakalun.llyfr.ui.components.glass.LocalPageBackdrop
 import io.github.tanakalun.llyfr.ui.components.glass.rememberSurfaceBackdrop
 import io.github.tanakalun.llyfr.LocalIsWideScreen
 import io.github.tanakalun.llyfr.core.AppViewModelFactory
@@ -49,6 +51,7 @@ fun LicensePage(
     val backdrop = rememberSurfaceBackdrop()
     val topAppBarScrollBehavior = MiuixScrollBehavior()
 
+    CompositionLocalProvider(LocalPageBackdrop provides backdrop) {
     Scaffold(
         contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
         topBar = {
@@ -109,4 +112,5 @@ fun LicensePage(
             }
         }
     }
+}
 }

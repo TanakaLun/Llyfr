@@ -10,6 +10,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -27,7 +28,7 @@ import io.github.tanakalun.llyfr.core.AppViewModelFactory
 import io.github.tanakalun.llyfr.LocalIsWideScreen
 import io.github.tanakalun.llyfr.data.settings.SettingsStore
 import io.github.tanakalun.llyfr.ui.components.glass.AppNavigationBar
-import io.github.tanakalun.llyfr.ui.components.glass.PageGlassHost
+import io.github.tanakalun.llyfr.ui.components.glass.LocalPageBackdrop
 import io.github.tanakalun.llyfr.ui.components.glass.isBlurEffectActive
 import io.github.tanakalun.llyfr.ui.components.glass.isGlassEffectActive
 import io.github.tanakalun.llyfr.ui.components.glass.rememberSurfaceBackdrop
@@ -108,7 +109,7 @@ fun Home(
         if (uri != null) settingsViewModel.onImportUri(uri)
     }
 
-    PageGlassHost { _ ->
+    CompositionLocalProvider(LocalPageBackdrop provides backdrop) {
         Scaffold(
             snackbarHost = {
                 SnackbarHost(state = snackbarHostState)

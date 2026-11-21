@@ -28,6 +28,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -84,6 +85,7 @@ import io.github.tanakalun.llyfr.data.model.ContentSegment
 import io.github.tanakalun.llyfr.data.settings.SettingsStore
 import io.github.tanakalun.llyfr.ui.highlightCode
 import io.github.tanakalun.llyfr.ui.components.glass.AppIconButton
+import io.github.tanakalun.llyfr.ui.components.glass.LocalPageBackdrop
 import io.github.tanakalun.llyfr.ui.components.glass.AppTopAppBar
 import io.github.tanakalun.llyfr.ui.components.glass.isGlassEffectActive
 import io.github.tanakalun.llyfr.ui.components.glass.rememberSurfaceBackdrop
@@ -201,6 +203,7 @@ fun NoteEditorPage(
     }
 
     val backdrop = rememberSurfaceBackdrop()
+    CompositionLocalProvider(LocalPageBackdrop provides backdrop) {
     Scaffold(
         contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
         topBar = {
@@ -624,6 +627,8 @@ fun NoteEditorPage(
         }
         }
     }
+}
+
 }
 
 @Composable

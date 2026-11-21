@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -51,6 +52,7 @@ import io.github.tanakalun.llyfr.R
 import io.github.tanakalun.llyfr.ui.components.glass.AppBottomSheet
 import io.github.tanakalun.llyfr.ui.components.glass.AppDropdownPreference
 import io.github.tanakalun.llyfr.ui.components.glass.AppTopAppBar
+import io.github.tanakalun.llyfr.ui.components.glass.LocalPageBackdrop
 import io.github.tanakalun.llyfr.ui.components.glass.rememberSurfaceBackdrop
 import io.github.tanakalun.llyfr.ui.components.blend.ColorBlendToken
 import io.github.tanakalun.llyfr.ui.components.effect.BgEffectBackground
@@ -100,6 +102,7 @@ fun AboutPage() {
     }
 
     val backdrop = rememberSurfaceBackdrop()
+    CompositionLocalProvider(LocalPageBackdrop provides backdrop) {
     Scaffold(
         contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
         topBar = {
@@ -128,6 +131,8 @@ fun AboutPage() {
             )
         }
     }
+}
+
 }
 
 @Composable

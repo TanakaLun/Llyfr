@@ -24,6 +24,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -78,6 +79,7 @@ import io.github.tanakalun.llyfr.ui.components.glass.AppDialogButton
 import io.github.tanakalun.llyfr.ui.components.glass.AppIconButton
 import io.github.tanakalun.llyfr.ui.components.glass.AppTextIconButton
 import io.github.tanakalun.llyfr.ui.components.glass.AppTopAppBar
+import io.github.tanakalun.llyfr.ui.components.glass.LocalPageBackdrop
 import io.github.tanakalun.llyfr.ui.components.glass.isGlassEffectActive
 import io.github.tanakalun.llyfr.ui.components.glass.rememberSurfaceBackdrop
 import top.yukonga.miuix.kmp.blur.layerBackdrop
@@ -146,6 +148,7 @@ fun ChecklistPage(
         }
     }
 
+    CompositionLocalProvider(LocalPageBackdrop provides backdrop) {
     Scaffold(
         contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
         topBar = {
@@ -395,4 +398,5 @@ fun ChecklistPage(
         }
         }
     }
+}
 }

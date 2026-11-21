@@ -96,24 +96,6 @@ fun rememberSurfaceBackdrop(): LayerBackdrop? {
     }
 }
 
-/** 页面根节点：提供 [LocalPageBackdrop]，并把整页录制进页面采样层。 */
-@Composable
-fun PageGlassHost(
-    modifier: Modifier = Modifier,
-    content: @Composable (Backdrop?) -> Unit,
-) {
-    val pageBackdrop = rememberSurfaceBackdrop()
-    CompositionLocalProvider(LocalPageBackdrop provides pageBackdrop) {
-        Box(
-            modifier = modifier
-                .fillMaxSize()
-                .then(if (pageBackdrop != null) Modifier.layerBackdrop(pageBackdrop) else Modifier),
-        ) {
-            content(pageBackdrop)
-        }
-    }
-}
-
 /** 顶栏：glass 模式用 GlassTopAppBar，miuix blur 沿用 BlurredBar，无质感时用纯色。 */
 @Composable
 fun AppTopAppBar(

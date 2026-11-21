@@ -31,7 +31,6 @@ import io.github.tanakalun.llyfr.ui.editor.ChecklistPage
 import io.github.tanakalun.llyfr.ui.editor.NoteEditorPage
 import io.github.tanakalun.llyfr.ui.editor.TodoEditorPage
 import io.github.tanakalun.llyfr.ui.components.glass.GlassNavigationRailHost
-import io.github.tanakalun.llyfr.ui.components.glass.LocalPageBackdrop
 import io.github.tanakalun.llyfr.ui.components.glass.isGlassEffectActive
 import io.github.tanakalun.llyfr.ui.components.glass.rememberSurfaceBackdrop
 import io.github.tanakalun.llyfr.ui.home.Home
@@ -149,7 +148,6 @@ fun AppContent(
                         backdrop = railBackdrop,
                     )
                 }
-                CompositionLocalProvider(LocalPageBackdrop provides railBackdrop) {
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -202,7 +200,6 @@ entry<Route.ChecklistEditor>(swipeDismiss = swipeDismiss) { route ->
                             }
                         }
                     }
-                }
                 }
             }
         }

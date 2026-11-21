@@ -42,9 +42,18 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build debug APK
+        shell: bash
         run: |
           chmod +x gradlew
-          ./gradlew :app:assembleDebug --stacktrace --console=plain
+          set +e
+          ./gradlew :app:assembleDebug --stacktrace --console=plain 2>&1 | tee build.log
+          status=${PIPESTATUS[0]}
+          if [ $status -ne 0 ]; then
+            grep -E "^e: |error:|FAILURE:|What went wrong|Could not (determine|resolve|find)|> Task .* FAILED|^Caused by|requires libraries" build.log \
+              | head -40 \
+              | while IFS= read -r line; do echo "::error title=Gradle::$line"; done
+          fi
+          exit $status
 
       - name: Upload debug APK
         if: success()

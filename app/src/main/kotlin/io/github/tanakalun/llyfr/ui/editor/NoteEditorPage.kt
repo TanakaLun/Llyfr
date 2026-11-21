@@ -100,7 +100,6 @@ import top.yukonga.miuix.kmp.icon.extended.AddCircle
 import top.yukonga.miuix.kmp.icon.extended.Delete
 import top.yukonga.miuix.kmp.icon.extended.Lock
 import top.yukonga.miuix.kmp.icon.glass.Ok
-import top.yukonga.miuix.kmp.icon.extended.Ok
 import top.yukonga.miuix.kmp.icon.extended.Unlock
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -202,7 +201,6 @@ fun NoteEditorPage(
     }
 
     val backdrop = rememberSurfaceBackdrop()
-    val glass = isGlassEffectActive()
     Scaffold(
         contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
         topBar = {
@@ -224,7 +222,7 @@ fun NoteEditorPage(
                         backdrop = backdrop,
                     )
                     AppIconButton(
-                        icon = if (glass) MiuixIcons.Glass.Ok else MiuixIcons.Ok,
+                        icon = MiuixIcons.Glass.Ok,
                         contentDescription = stringResource(R.string.save),
                         onClick = { viewModel.save(markdownResolver, onBack) },
                         backdrop = backdrop,

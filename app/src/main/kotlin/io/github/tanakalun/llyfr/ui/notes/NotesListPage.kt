@@ -68,7 +68,6 @@ import top.yukonga.miuix.kmp.icon.glass.Add
 import top.yukonga.miuix.kmp.icon.glass.Close
 import top.yukonga.miuix.kmp.icon.glass.Ok
 import top.yukonga.miuix.kmp.icon.extended.Image
-import top.yukonga.miuix.kmp.icon.extended.Ok
 import top.yukonga.miuix.kmp.icon.extended.Pin
 import top.yukonga.miuix.kmp.icon.extended.Alarm
 import top.yukonga.miuix.kmp.icon.extended.Edit
@@ -185,12 +184,12 @@ fun NotesListPage(
                 actions = {
                     if (selectionMode) {
                         AppIconButton(
-                            icon = if (glass) MiuixIcons.Glass.Close else MiuixIcons.Close,
+                            icon = MiuixIcons.Glass.Close,
                             contentDescription = stringResource(R.string.cancel),
                             onClick = { viewModel.exitSelection() },
                         )
                         AppIconButton(
-                            icon = if (glass) MiuixIcons.Glass.Ok else MiuixIcons.Ok,
+                            icon = MiuixIcons.Glass.Ok,
                             contentDescription = stringResource(R.string.done),
                             onClick = { if (selectedIds.isNotEmpty()) showBatchDialog = true },
                         )
@@ -313,7 +312,7 @@ fun NotesListPage(
                 title = stringResource(R.string.new_item),
                 startAction = {
                     AppIconButton(
-                        icon = if (glass) MiuixIcons.Glass.Close else MiuixIcons.Close,
+                        icon = MiuixIcons.Glass.Close,
                         contentDescription = stringResource(R.string.cancel),
                         onClick = { showNewDialog = false },
                     )
@@ -404,7 +403,7 @@ fun NotesListPage(
                             .padding(end = 12.dp, bottom = bottomPadding + 12.dp),
                     ) {
                         Icon(
-                            imageVector = MiuixIcons.Add,
+                            imageVector = MiuixIcons.Glass.Add,
                             contentDescription = stringResource(R.string.new_item),
                             tint = MiuixTheme.colorScheme.onPrimary,
                         )

@@ -57,7 +57,6 @@ import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Lock
 import top.yukonga.miuix.kmp.icon.glass.Ok
-import top.yukonga.miuix.kmp.icon.extended.Ok
 import top.yukonga.miuix.kmp.icon.extended.Alarm
 import top.yukonga.miuix.kmp.icon.extended.Unlock
 import top.yukonga.miuix.kmp.blur.layerBackdrop
@@ -107,7 +106,6 @@ fun TodoEditorPage(
     val colorIndex = uiState.colorIndex
     val readOnly = uiState.readOnly
     val backdrop = rememberSurfaceBackdrop()
-    val glass = isGlassEffectActive()
     val reminderText = if (uiState.reminderAt > 0L) {
         SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(uiState.reminderAt))
     } else {
@@ -135,7 +133,7 @@ fun TodoEditorPage(
                         backdrop = backdrop,
                     )
                     AppIconButton(
-                        icon = if (glass) MiuixIcons.Glass.Ok else MiuixIcons.Ok,
+                        icon = MiuixIcons.Glass.Ok,
                         contentDescription = stringResource(R.string.save),
                         onClick = ::requestSave,
                         backdrop = backdrop,

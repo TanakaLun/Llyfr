@@ -28,8 +28,6 @@ import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.glass.Close
 import top.yukonga.miuix.kmp.icon.glass.Ok
-import top.yukonga.miuix.kmp.icon.extended.Close
-import top.yukonga.miuix.kmp.icon.extended.Ok
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.util.Calendar
 
@@ -64,20 +62,19 @@ fun DateTimePickerSheet(
         if (day > daysInMonth) day = daysInMonth
     }
 
-    val glass = isGlassEffectActive()
     AppBottomSheet(
         show = show,
         title = stringResource(R.string.choose_reminder_time),
         startAction = {
             AppIconButton(
-                icon = if (glass) MiuixIcons.Glass.Close else MiuixIcons.Close,
+                icon = MiuixIcons.Glass.Close,
                 contentDescription = stringResource(R.string.cancel),
                 onClick = onDismiss,
             )
         },
         endAction = {
             AppIconButton(
-                icon = if (glass) MiuixIcons.Glass.Ok else MiuixIcons.Ok,
+                icon = MiuixIcons.Glass.Ok,
                 contentDescription = stringResource(R.string.done),
                 onClick = {
                     val cal = Calendar.getInstance().apply {

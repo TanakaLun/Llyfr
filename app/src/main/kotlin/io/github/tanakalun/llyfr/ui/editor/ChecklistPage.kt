@@ -66,12 +66,10 @@ import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextButtonColors
 import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.Add
 import top.yukonga.miuix.kmp.icon.extended.Delete
 import top.yukonga.miuix.kmp.icon.extended.Lock
 import top.yukonga.miuix.kmp.icon.glass.Add
 import top.yukonga.miuix.kmp.icon.glass.Ok
-import top.yukonga.miuix.kmp.icon.extended.Ok
 import top.yukonga.miuix.kmp.icon.extended.Unlock
 import top.yukonga.miuix.kmp.squircle.squircleBackground
 import io.github.tanakalun.llyfr.ui.components.glass.AppButtonRole
@@ -178,7 +176,7 @@ fun ChecklistPage(
                         )
                     } else {
                         AppIconButton(
-                            icon = if (glass) MiuixIcons.Glass.Ok else MiuixIcons.Ok,
+                            icon = MiuixIcons.Glass.Ok,
                             contentDescription = stringResource(R.string.save),
                             onClick = { viewModel.save(onBack) },
                             backdrop = backdrop,
@@ -204,7 +202,7 @@ fun ChecklistPage(
                 } else {
                     FloatingActionButton(onClick = { viewModel.addItem() }) {
                         Icon(
-                            imageVector = MiuixIcons.Add,
+                            imageVector = MiuixIcons.Glass.Add,
                             contentDescription = stringResource(R.string.add_item),
                             tint = MiuixTheme.colorScheme.onPrimary,
                         )

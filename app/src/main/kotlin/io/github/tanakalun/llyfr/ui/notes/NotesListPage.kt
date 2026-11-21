@@ -230,11 +230,14 @@ fun NotesListPage(
         val topPadding = scaffoldPadding.calculateTopPadding()
         val bottomPadding = innerPadding.calculateBottomPadding()
 
-        Box(
-            modifier = Modifier.fillMaxSize().then(
-                if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier
-            ),
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            // 只录制列表内容：FAB 必须留在录制层外，否则玻璃按钮会采样包含自己的 layer
+            // 造成 RenderNode 自引用，RenderThread 会栈溢出崩溃。
+            Box(
+                modifier = Modifier.fillMaxSize().then(
+                    if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier
+                ),
+            ) {
             LazyColumn(
                 modifier = Modifier
                     .scrollEndHaptic()
@@ -305,6 +308,7 @@ fun NotesListPage(
                 }
 
                 item { Spacer(modifier = Modifier.height(8.dp)) }
+            }
             }
 
             AppBottomSheet(

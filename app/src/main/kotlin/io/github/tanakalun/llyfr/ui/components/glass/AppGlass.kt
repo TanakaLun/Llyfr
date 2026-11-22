@@ -102,17 +102,22 @@ fun rememberSurfaceBackdrop(): LayerBackdrop? {
 }
 
 /**
- * 玻璃浮层内嵌 Card 的配色：对齐 Miuix example 的说明——
- * 用 `onBackground` 的低透明度填充，让底层玻璃材质透出来，而不是铺一块不透明 surface。
- * 非 glass 模式返回默认卡片配色。
+ * 浮层（sheet）内嵌 Card 的配色，复刻 Miuix example：
+ * - glass：`onBackground` 低透明度填充（深色 36/255、浅色 15/255），让玻璃材质透出；
+ * - 非 glass：`secondaryContainer`，与 sheet 背景区分开（example 的 BottomSheetSection 做法）。
  */
 @Composable
-fun glassCardColors(): CardColors {
-    if (!isGlassEffectActive()) return CardDefaults.defaultColors()
-    val alpha = if (isInDarkTheme()) 36f / 255f else 15f / 255f
-    return CardDefaults.defaultColors(
-        color = MiuixTheme.colorScheme.onBackground.copy(alpha = alpha),
-    )
+fun sheetCardColors(): CardColors {
+    return if (isGlassEffectActive()) {
+        val alpha = if (isInDarkTheme()) 36f / 255f else 15f / 255f
+        CardDefaults.defaultColors(
+            color = MiuixTheme.colorScheme.onBackground.copy(alpha = alpha),
+        )
+    } else {
+        CardDefaults.defaultColors(
+            color = MiuixTheme.colorScheme.secondaryContainer,
+        )
+    }
 }
 
 /**

@@ -36,6 +36,15 @@
     <string name="blur_effect">ぼかし効果</string>
     <string name="blur_effect_summary">ナビゲーションバーとアプリバーに背景ぼかしを有効にする</string>
     <string name="blur_effect_power_save">省電力モードでは利用できません</string>
+    <string name="material_effect">マテリアル効果</string>
+    <string name="material_effect_summary">バーとカードに使う視覚マテリアル</string>
+    <string name="effect_none">なし</string>
+    <string name="effect_blur">miuix blur</string>
+    <string name="effect_glass">miuix glass</string>
+    <string name="filter_all">すべて</string>
+    <string name="filter_note">ノート</string>
+    <string name="filter_checklist">リスト</string>
+    <string name="filter_todo">ToDo</string>
     <string name="blur_style">ぼかしスタイル</string>
     <string name="blur_style_summary">アプリバーのぼかしテクスチャを選択</string>
     <string name="blur_style_gaussian">ガウスぼかし</string>

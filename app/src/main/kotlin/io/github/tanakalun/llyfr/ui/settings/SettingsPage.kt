@@ -33,16 +33,15 @@ import io.github.tanakalun.llyfr.ui.util.openNotificationSettings
 import io.github.tanakalun.llyfr.LocalIsWideScreen
 import io.github.tanakalun.llyfr.core.PowerSaveModeTracker
 import io.github.tanakalun.llyfr.data.settings.SettingsStore
-import io.github.tanakalun.llyfr.ui.util.BlurredBar
-import io.github.tanakalun.llyfr.ui.util.rememberBlurBackdrop
+import io.github.tanakalun.llyfr.ui.components.glass.AppDropdownPreference
+import io.github.tanakalun.llyfr.ui.components.glass.AppTopAppBar
+import io.github.tanakalun.llyfr.ui.components.glass.rememberSurfaceBackdrop
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.SmallTitle
-import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.preference.ArrowPreference
-import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.ThemeColorSpec
@@ -90,9 +89,10 @@ private fun blurStyleOptions(): List<String> = listOf(
 )
 
 @Composable
-private fun navbarStyleOptions(): List<String> = listOf(
-    stringResource(R.string.floating_navbar_style_default),
-    stringResource(R.string.floating_navbar_style_ios),
+private fun materialEffectOptions(): List<String> = listOf(
+    stringResource(R.string.effect_none),
+    stringResource(R.string.effect_blur),
+    stringResource(R.string.effect_glass),
 )
 
 @Composable
@@ -112,26 +112,24 @@ fun SettingsPage(
 ) {
     val context = LocalContext.current
     val isWideScreen = LocalIsWideScreen.current
-    val backdrop = rememberBlurBackdrop()
+    val backdrop = rememberSurfaceBackdrop()
     val powerSave by PowerSaveModeTracker.isPowerSaveMode.collectAsStateWithLifecycle()
-    val barColor = if (backdrop != null) Color.Transparent else MiuixTheme.colorScheme.surface
     val topAppBarScrollBehavior = MiuixScrollBehavior()
     val ColorModeOptions = colorModeOptions()
     val KeyColorOptions = keyColorOptions()
     val LanguageOptions = languageOptions()
+    val MaterialEffectOptions = materialEffectOptions()
     val BlurStyleOptions = blurStyleOptions()
-    val NavbarStyleOptions = navbarStyleOptions()
     val NavbarPositionOptions = navbarPositionOptions()
 
     val colorMode = SettingsStore.colorMode
     val keyColorIndex = SettingsStore.keyColorIndex
     val paletteStyle = SettingsStore.paletteStyle
     val colorSpec = SettingsStore.colorSpec
-    val enableBlur = SettingsStore.enableBlur
+    val materialEffect = SettingsStore.materialEffect
     val blurStyle = SettingsStore.blurStyle
     val language = SettingsStore.language
     val useFloatingNavbar = SettingsStore.useFloatingNavbar
-    val floatingNavbarStyle = SettingsStore.floatingNavbarStyle
     val floatingNavbarPosition = SettingsStore.floatingNavbarPosition
     val showSearchBar = SettingsStore.showSearchBar
     val enterCreatesItem = SettingsStore.enterCreatesItem
@@ -159,17 +157,12 @@ fun SettingsPage(
     Scaffold(
         contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
         topBar = {
-            BlurredBar(
+            AppTopAppBar(
+                title = stringResource(R.string.settings),
                 backdrop = backdrop,
+                defaultWindowInsetsPadding = !isWideScreen,
                 scrollBehavior = topAppBarScrollBehavior,
-            ) {
-                TopAppBar(
-                    title = stringResource(R.string.settings),
-                    color = barColor,
-                    defaultWindowInsetsPadding = !isWideScreen,
-                    scrollBehavior = topAppBarScrollBehavior,
-                )
-            }
+            )
         },
     ) { scaffoldPadding ->
         val topPadding = scaffoldPadding.calculateTopPadding()
@@ -194,7 +187,7 @@ fun SettingsPage(
                     Card(
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                     ) {
-                        OverlayDropdownPreference(
+                        AppDropdownPreference(
                             items = ColorModeOptions,
                             selectedIndex = colorMode,
                             title = stringResource(R.string.color_mode),
@@ -202,7 +195,7 @@ fun SettingsPage(
                             onSelectedIndexChange = { viewModel.updateColorMode(it) },
                         )
                         AnimatedVisibility(visible = colorMode in 3..5) {
-                            OverlayDropdownPreference(
+                            AppDropdownPreference(
                                 items = KeyColorOptions,
                                 selectedIndex = keyColorIndex,
                                 title = stringResource(R.string.key_color),
@@ -211,7 +204,7 @@ fun SettingsPage(
                             )
                         }
                         AnimatedVisibility(visible = colorMode in 3..5 && keyColorIndex > 0) {
-                            OverlayDropdownPreference(
+                            AppDropdownPreference(
                                 items = PaletteStyleOptions,
                                 selectedIndex = paletteStyle,
                                 title = stringResource(R.string.palette_style),
@@ -220,7 +213,7 @@ fun SettingsPage(
                             )
                         }
                         AnimatedVisibility(visible = colorMode in 3..5 && keyColorIndex > 0) {
-                            OverlayDropdownPreference(
+                            AppDropdownPreference(
                                 items = ColorSpecOptions,
                                 selectedIndex = colorSpec,
                                 title = stringResource(R.string.color_spec),
@@ -228,26 +221,27 @@ fun SettingsPage(
                                 onSelectedIndexChange = { viewModel.updateColorSpec(it) },
                             )
                         }
-                        SwitchPreference(
-                            title = stringResource(R.string.blur_effect),
+                        AppDropdownPreference(
+                            items = MaterialEffectOptions,
+                            selectedIndex = materialEffect,
+                            title = stringResource(R.string.material_effect),
                             summary = if (powerSave) {
                                 stringResource(R.string.blur_effect_power_save)
                             } else {
-                                stringResource(R.string.blur_effect_summary)
+                                stringResource(R.string.material_effect_summary)
                             },
-                            checked = enableBlur && !powerSave,
+                            onSelectedIndexChange = { viewModel.updateMaterialEffect(it) },
                             enabled = !powerSave,
-                            onCheckedChange = { viewModel.updateEnableBlur(it) },
                         )
-                        OverlayDropdownPreference(
+                        AppDropdownPreference(
                             items = BlurStyleOptions,
                             selectedIndex = blurStyle,
                             title = stringResource(R.string.blur_style),
                             summary = stringResource(R.string.blur_style_summary),
                             onSelectedIndexChange = { viewModel.updateBlurStyle(it) },
-                            enabled = enableBlur && !powerSave,
+                            enabled = materialEffect == SettingsStore.EFFECT_BLUR && !powerSave,
                         )
-                        OverlayDropdownPreference(
+                        AppDropdownPreference(
                             items = LanguageOptions,
                             selectedIndex = language,
                             title = stringResource(R.string.language),
@@ -275,24 +269,13 @@ fun SettingsPage(
                             onCheckedChange = { viewModel.updateSwipeBackEnabled(it) },
                         )
                         AnimatedVisibility(visible = useFloatingNavbar) {
-                            Column {
-                                OverlayDropdownPreference(
-                                    items = NavbarStyleOptions,
-                                    selectedIndex = floatingNavbarStyle,
-                                    title = stringResource(R.string.floating_navbar_style),
-                                    summary = stringResource(R.string.floating_navbar_style_summary),
-                                    onSelectedIndexChange = { viewModel.updateFloatingNavbarStyle(it) },
-                                )
-                                AnimatedVisibility(visible = floatingNavbarStyle == 0) {
-                                    OverlayDropdownPreference(
-                                        items = NavbarPositionOptions,
-                                        selectedIndex = floatingNavbarPosition,
-                                        title = stringResource(R.string.navbar_position),
-                                        summary = stringResource(R.string.navbar_position_summary),
-                                        onSelectedIndexChange = { viewModel.updateFloatingNavbarPosition(it) },
-                                    )
-                                }
-                            }
+                            AppDropdownPreference(
+                                items = NavbarPositionOptions,
+                                selectedIndex = floatingNavbarPosition,
+                                title = stringResource(R.string.navbar_position),
+                                summary = stringResource(R.string.navbar_position_summary),
+                                onSelectedIndexChange = { viewModel.updateFloatingNavbarPosition(it) },
+                            )
                         }
                     }
                 }
@@ -328,7 +311,7 @@ fun SettingsPage(
                     Card(
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                     ) {
-                        OverlayDropdownPreference(
+                        AppDropdownPreference(
                             items = listOf(
                                 stringResource(R.string.notif_style_normal),
                                 stringResource(R.string.notif_style_live),

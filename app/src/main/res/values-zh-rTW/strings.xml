@@ -36,6 +36,15 @@
     <string name="blur_effect">模糊效果</string>
     <string name="blur_effect_summary">為導覽列和頂欄啟用背景模糊</string>
     <string name="blur_effect_power_save">省電模式下不可用</string>
+    <string name="material_effect">質感效果</string>
+    <string name="material_effect_summary">頂欄與卡片使用的視覺材質</string>
+    <string name="effect_none">無</string>
+    <string name="effect_blur">miuix blur</string>
+    <string name="effect_glass">miuix glass</string>
+    <string name="filter_all">全部</string>
+    <string name="filter_note">筆記</string>
+    <string name="filter_checklist">清單</string>
+    <string name="filter_todo">待辦</string>
     <string name="blur_style">模糊樣式</string>
     <string name="blur_style_summary">選擇頂欄模糊紋理樣式</string>
     <string name="blur_style_gaussian">高斯模糊</string>

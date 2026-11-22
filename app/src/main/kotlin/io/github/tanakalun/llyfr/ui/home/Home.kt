@@ -5,10 +5,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -25,7 +27,11 @@ import io.github.tanakalun.llyfr.R
 import io.github.tanakalun.llyfr.core.AppViewModelFactory
 import io.github.tanakalun.llyfr.LocalIsWideScreen
 import io.github.tanakalun.llyfr.data.settings.SettingsStore
-import io.github.tanakalun.llyfr.ui.components.liquid.IosLiquidGlassNavigationBar
+import io.github.tanakalun.llyfr.ui.components.glass.AppNavigationBar
+import io.github.tanakalun.llyfr.ui.components.glass.LocalPageBackdrop
+import io.github.tanakalun.llyfr.ui.components.glass.isBlurEffectActive
+import io.github.tanakalun.llyfr.ui.components.glass.isGlassEffectActive
+import io.github.tanakalun.llyfr.ui.components.glass.rememberSurfaceBackdrop
 import io.github.tanakalun.llyfr.ui.notes.NotesListPage
 import io.github.tanakalun.llyfr.ui.settings.BackupDialogState
 import io.github.tanakalun.llyfr.ui.settings.BusyDialog
@@ -37,7 +43,6 @@ import io.github.tanakalun.llyfr.ui.settings.SettingsPage
 import io.github.tanakalun.llyfr.ui.settings.SettingsViewModel
 import io.github.tanakalun.llyfr.ui.util.AppBlur
 import io.github.tanakalun.llyfr.ui.util.isPowerSave
-import io.github.tanakalun.llyfr.ui.util.rememberBlurBackdrop
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.FloatingNavigationBar
 import top.yukonga.miuix.kmp.basic.FloatingNavigationBarItem
@@ -54,7 +59,6 @@ import top.yukonga.miuix.kmp.blur.BlurDefaults
 import top.yukonga.miuix.kmp.blur.LayerBackdrop
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.textureBlur
-import top.yukonga.miuix.kmp.blur.highlight.Highlight
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -74,9 +78,9 @@ fun Home(
     settingsViewModel: SettingsViewModel = viewModel(factory = AppViewModelFactory),
 ) {
     val isWideScreen = LocalIsWideScreen.current
-    val backdrop = rememberBlurBackdrop()
-    val powerSave = isPowerSave()
-    val blurActive = SettingsStore.enableBlur && backdrop != null && !powerSave
+    val backdrop = rememberSurfaceBackdrop()
+    val blurActive = isBlurEffectActive() && backdrop != null
+    val glassActive = isGlassEffectActive()
     val barColor = if (blurActive) Color.Transparent else MiuixTheme.colorScheme.surface
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -105,26 +109,36 @@ fun Home(
         if (uri != null) settingsViewModel.onImportUri(uri)
     }
 
-    Scaffold(
-        snackbarHost = {
-            SnackbarHost(state = snackbarHostState)
-        },
-        bottomBar = {
-            // 宽屏由左侧 rail 承担导航，隐藏底部导航条
-            if (!isWideScreen) {
-                NavigationBarSection(
-                    navigationItems = navigationItems,
-                    mainPagerState = mainPagerState,
-                    backdrop = backdrop,
-                    blurActive = blurActive,
-                    barColor = barColor,
-                    useFloating = SettingsStore.useFloatingNavbar,
-                    floatingStyle = SettingsStore.floatingNavbarStyle,
-                    floatingPosition = SettingsStore.floatingNavbarPosition,
-                )
-            }
-        },
-    ) { innerPadding ->
+    CompositionLocalProvider(LocalPageBackdrop provides backdrop) {
+        Scaffold(
+            snackbarHost = {
+                SnackbarHost(state = snackbarHostState)
+            },
+            bottomBar = {
+                // 宽屏由左侧 rail 承担导航，隐藏底部导航条
+                if (!isWideScreen) {
+                    if (glassActive) {
+                        AppNavigationBar(
+                            items = navigationItems,
+                            selectedIndex = mainPagerState.selectedPage,
+                            onSelect = { mainPagerState.animateToPage(it) },
+                            backdrop = backdrop,
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                        )
+                    } else {
+                        NavigationBarSection(
+                            navigationItems = navigationItems,
+                            mainPagerState = mainPagerState,
+                            backdrop = backdrop,
+                            blurActive = blurActive,
+                            barColor = barColor,
+                            useFloating = SettingsStore.useFloatingNavbar,
+                            floatingPosition = SettingsStore.floatingNavbarPosition,
+                        )
+                    }
+                }
+            },
+        ) { innerPadding ->
         Box(
             modifier = Modifier.fillMaxSize().then(
                 if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier
@@ -185,6 +199,7 @@ fun Home(
             BusyOp.Import -> BusyDialog(stringResource(R.string.backup_import_busy))
             null -> Unit
         }
+        }
     }
 }
 
@@ -196,27 +211,11 @@ private fun NavigationBarSection(
     blurActive: Boolean,
     barColor: Color,
     useFloating: Boolean,
-    floatingStyle: Int,
     floatingPosition: Int,
 ) {
     if (useFloating) {
-        if (floatingStyle == 1) {
-            IosLiquidGlassNavigationBar(
-                items = navigationItems,
-                selectedIndex = mainPagerState.selectedPage.coerceIn(0, navigationItems.size - 1),
-                onItemClick = { index -> mainPagerState.animateToPage(index) },
-                backdrop = backdrop,
-                isBlurActive = blurActive && backdrop != null,
-            )
-            return
-        }
-
         val floatingColor = if (blurActive) Color.Transparent else MiuixTheme.colorScheme.surfaceContainer
         val floatingShape = RoundedCornerShape(FloatingToolbarDefaults.CornerRadius)
-        val isDark = isSystemInDarkTheme()
-        val floatingHighlight = remember(isDark) {
-            if (isDark) Highlight.GlassStrokeMiddleDark else Highlight.GlassStrokeMiddleLight
-        }
         FloatingNavigationBar(
             color = floatingColor,
             horizontalAlignment = when (floatingPosition) {
@@ -236,7 +235,6 @@ private fun NavigationBarSection(
                             ),
                         ),
                     ),
-                    highlight = floatingHighlight,
                 )
             } else {
                 Modifier

@@ -24,6 +24,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -56,27 +57,33 @@ import io.github.tanakalun.llyfr.data.model.Note
 import io.github.tanakalun.llyfr.data.settings.SettingsStore
 import io.github.tanakalun.llyfr.LocalNavigator
 import io.github.tanakalun.llyfr.ui.util.BackNavigationIcon
-import io.github.tanakalun.llyfr.ui.util.BlurredBar
-import io.github.tanakalun.llyfr.ui.util.rememberBlurBackdrop
 import top.yukonga.miuix.kmp.basic.Checkbox
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
 import top.yukonga.miuix.kmp.basic.Icon
-import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
-import top.yukonga.miuix.kmp.basic.SmallTopAppBar
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextButtonColors
 import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.Add
 import top.yukonga.miuix.kmp.icon.extended.Delete
 import top.yukonga.miuix.kmp.icon.extended.Lock
-import top.yukonga.miuix.kmp.icon.extended.Ok
+import top.yukonga.miuix.kmp.icon.glass.Add
+import top.yukonga.miuix.kmp.icon.glass.Ok
 import top.yukonga.miuix.kmp.icon.extended.Unlock
-import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.squircle.squircleBackground
+import io.github.tanakalun.llyfr.ui.components.glass.AppButtonRole
+import io.github.tanakalun.llyfr.ui.components.glass.AppDialog
+import io.github.tanakalun.llyfr.ui.components.glass.AppDialogButton
+import io.github.tanakalun.llyfr.ui.components.glass.AppIconButton
+import io.github.tanakalun.llyfr.ui.components.glass.AppTextIconButton
+import io.github.tanakalun.llyfr.ui.components.glass.AppTopAppBar
+import io.github.tanakalun.llyfr.ui.components.glass.LocalPageBackdrop
+import io.github.tanakalun.llyfr.ui.components.glass.isGlassEffectActive
+import io.github.tanakalun.llyfr.ui.components.glass.rememberSurfaceBackdrop
+import top.yukonga.miuix.kmp.blur.layerBackdrop
+import top.yukonga.miuix.kmp.glass.GlassFloatingActionButton
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 
@@ -113,90 +120,96 @@ fun ChecklistPage(
     var deleteMode by remember { mutableStateOf(false) }
     var itemToDelete by remember { mutableStateOf<CheckItem?>(null) }
 
-    val backdrop = rememberBlurBackdrop()
+    val backdrop = rememberSurfaceBackdrop()
+    val glass = isGlassEffectActive()
     val topAppBarScrollBehavior = MiuixScrollBehavior()
-    val barColor = if (backdrop != null) Color.Transparent else MiuixTheme.colorScheme.surface
 
-    OverlayDialog(
+    AppDialog(
         show = itemToDelete != null,
         title = stringResource(R.string.delete_title),
         summary = stringResource(R.string.delete_item_confirm),
         onDismissRequest = { itemToDelete = null },
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            TextButton(
+            AppDialogButton(
                 text = stringResource(R.string.cancel),
                 onClick = { itemToDelete = null },
                 modifier = Modifier.weight(1f),
             )
-            TextButton(
+            AppDialogButton(
                 text = stringResource(R.string.delete),
                 onClick = {
                     itemToDelete?.let { viewModel.removeItem(it.id) }
                     itemToDelete = null
                 },
                 modifier = Modifier.weight(1f),
-                colors = TextButtonColors(
-                    color = MiuixTheme.colorScheme.error,
-                    disabledColor = MiuixTheme.colorScheme.errorContainer,
-                    textColor = MiuixTheme.colorScheme.onError,
-                    disabledTextColor = MiuixTheme.colorScheme.onErrorContainer,
-                ),
+                role = AppButtonRole.Destructive,
             )
         }
     }
 
+    CompositionLocalProvider(LocalPageBackdrop provides backdrop) {
     Scaffold(
         contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
         topBar = {
-            BlurredBar(backdrop = backdrop, scrollBehavior = topAppBarScrollBehavior) {
-                SmallTopAppBar(
-                    title = stringResource(
-                        if (uiState.isNew) R.string.new_checklist else R.string.edit_checklist
-                    ),
-                    color = barColor,
-                    defaultWindowInsetsPadding = !isWideScreen,
-                    navigationIcon = {
-                        BackNavigationIcon(onClick = {
-                            deleteMode = false
-                            viewModel.save(onBack)
-                        })
-                    },
-                    actions = {
-                        IconButton(onClick = { viewModel.toggleReadOnly() }) {
-                            Icon(
-                                imageVector = if (readOnly) MiuixIcons.Unlock else MiuixIcons.Lock,
-                                contentDescription = stringResource(R.string.read_only),
-                            )
-                        }
-                        if (deleteMode) {
-                            IconButton(onClick = { deleteMode = false }) {
-                                Text(
-                                    text = stringResource(R.string.done),
-                                    style = MiuixTheme.textStyles.body1,
-                                    color = MiuixTheme.colorScheme.primary,
-                                )
-                            }
-                        } else {
-                            IconButton(onClick = { viewModel.save(onBack) }) {
-                                Icon(
-                                    imageVector = MiuixIcons.Ok,
-                                    contentDescription = stringResource(R.string.save),
-                                )
-                            }
-                        }
-                    },
-                )
-            }
+            AppTopAppBar(
+                title = stringResource(
+                    if (uiState.isNew) R.string.new_checklist else R.string.edit_checklist
+                ),
+                backdrop = backdrop,
+                large = false,
+                defaultWindowInsetsPadding = !isWideScreen,
+                navigationIcon = {
+                    BackNavigationIcon(onClick = {
+                        deleteMode = false
+                        viewModel.save(onBack)
+                    })
+                },
+                actions = {
+                    AppIconButton(
+                        icon = if (readOnly) MiuixIcons.Unlock else MiuixIcons.Lock,
+                        contentDescription = stringResource(R.string.read_only),
+                        onClick = { viewModel.toggleReadOnly() },
+                        backdrop = backdrop,
+                    )
+                    if (deleteMode) {
+                        AppTextIconButton(
+                            text = stringResource(R.string.done),
+                            onClick = { deleteMode = false },
+                        )
+                    } else {
+                        AppIconButton(
+                            icon = MiuixIcons.Glass.Ok,
+                            contentDescription = stringResource(R.string.save),
+                            onClick = { viewModel.save(onBack) },
+                            backdrop = backdrop,
+                        )
+                    }
+                },
+            )
         },
         floatingActionButton = {
             if (!deleteMode && !readOnly) {
-                FloatingActionButton(onClick = { viewModel.addItem() }) {
-                    Icon(
-                        imageVector = MiuixIcons.Add,
-                        contentDescription = stringResource(R.string.add_item),
-                        tint = MiuixTheme.colorScheme.onPrimary,
-                    )
+                if (glass) {
+                    GlassFloatingActionButton(
+                        onClick = { viewModel.addItem() },
+                        backdrop = backdrop,
+                    ) {
+                        Icon(
+                            imageVector = MiuixIcons.Glass.Add,
+                            contentDescription = stringResource(R.string.add_item),
+                            modifier = Modifier.size(24.dp),
+                            tint = MiuixTheme.colorScheme.onSurface,
+                        )
+                    }
+                } else {
+                    FloatingActionButton(onClick = { viewModel.addItem() }) {
+                        Icon(
+                            imageVector = MiuixIcons.Glass.Add,
+                            contentDescription = stringResource(R.string.add_item),
+                            tint = MiuixTheme.colorScheme.onPrimary,
+                        )
+                    }
                 }
             }
         },
@@ -204,6 +217,11 @@ fun ChecklistPage(
         val topPadding = scaffoldPadding.calculateTopPadding()
         val bottomPadding = scaffoldPadding.calculateBottomPadding()
 
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .then(if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier),
+        ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -365,17 +383,20 @@ fun ChecklistPage(
                         )
 
                         if (deleteMode) {
-                            IconButton(onClick = { itemToDelete = item }) {
-                                Icon(
-                                    imageVector = MiuixIcons.Delete,
-                                    contentDescription = stringResource(R.string.delete),
-                                    tint = MiuixTheme.colorScheme.error,
-                                )
-                            }
+                            // 这一行在内容采样层内部：不能再把 layer 作为采样源，否则玻璃按钮
+                            // 会采样到包含自己的 RenderNode，导致渲染树自引用。
+                            AppIconButton(
+                                icon = MiuixIcons.Delete,
+                                contentDescription = stringResource(R.string.delete),
+                                onClick = { itemToDelete = item },
+                                tint = MiuixTheme.colorScheme.error,
+                            )
                         }
                     }
                 }
             }
         }
+        }
     }
+}
 }

@@ -179,7 +179,8 @@ class BackupService(
         keyColorIndex = settingsStore.keyColorIndex,
         paletteStyle = settingsStore.paletteStyle,
         colorSpec = settingsStore.colorSpec,
-        enableBlur = settingsStore.enableBlur,
+        enableBlur = settingsStore.materialEffect == SettingsStore.EFFECT_BLUR,
+        materialEffect = settingsStore.materialEffect,
         blurStyle = settingsStore.blurStyle,
         useFloatingNavbar = settingsStore.useFloatingNavbar,
         floatingNavbarStyle = settingsStore.floatingNavbarStyle,
@@ -195,7 +196,11 @@ class BackupService(
         settingsStore.updateKeyColorIndex(s.keyColorIndex)
         settingsStore.updatePaletteStyle(s.paletteStyle)
         settingsStore.updateColorSpec(s.colorSpec)
-        settingsStore.updateEnableBlur(s.enableBlur)
+        if (s.materialEffect >= 0) {
+            settingsStore.updateMaterialEffect(s.materialEffect)
+        } else {
+            settingsStore.updateEnableBlur(s.enableBlur)
+        }
         settingsStore.updateBlurStyle(s.blurStyle)
         settingsStore.updateUseFloatingNavbar(s.useFloatingNavbar)
         settingsStore.updateFloatingNavbarStyle(s.floatingNavbarStyle)

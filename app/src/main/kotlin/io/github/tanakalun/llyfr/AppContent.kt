@@ -30,6 +30,9 @@ import io.github.tanakalun.llyfr.ui.about.LicensePage
 import io.github.tanakalun.llyfr.ui.editor.ChecklistPage
 import io.github.tanakalun.llyfr.ui.editor.NoteEditorPage
 import io.github.tanakalun.llyfr.ui.editor.TodoEditorPage
+import io.github.tanakalun.llyfr.ui.components.glass.GlassNavigationRailHost
+import io.github.tanakalun.llyfr.ui.components.glass.isGlassEffectActive
+import io.github.tanakalun.llyfr.ui.components.glass.rememberSurfaceBackdrop
 import io.github.tanakalun.llyfr.ui.home.Home
 import io.github.tanakalun.llyfr.ui.home.MainPagerState
 import io.github.tanakalun.llyfr.ui.home.rememberMainPagerState
@@ -44,6 +47,8 @@ import top.yukonga.miuix.kmp.basic.NavigationRail
 import top.yukonga.miuix.kmp.basic.NavigationRailItem
 import top.yukonga.miuix.kmp.basic.NavigationRailValue
 import top.yukonga.miuix.kmp.basic.rememberNavigationRailState
+import top.yukonga.miuix.kmp.blur.LayerBackdrop
+import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Notes
 import top.yukonga.miuix.kmp.icon.extended.Settings
@@ -96,6 +101,8 @@ fun AppContent(
 
     val isWideScreen = shouldShowSplitPane()
     val expandRail = shouldExpandNavigationRail()
+    val railBackdrop = rememberSurfaceBackdrop()
+    val glassRail = isGlassEffectActive()
 
     val navCornerRadius = if (isWideScreen) 0.dp else rememberNavSystemCornerRadius()
     val backdropColor = MiuixTheme.colorScheme.surface
@@ -138,13 +145,15 @@ fun AppContent(
                         mainPagerState = mainPagerState,
                         navigator = navigator,
                         expandRail = expandRail,
+                        backdrop = railBackdrop,
                     )
                 }
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .then(if (isWideScreen) Modifier.clipToBounds() else Modifier),
+                        .then(if (railBackdrop != null) Modifier.layerBackdrop(railBackdrop) else Modifier)
+                        .then(if (isWideScreen && !glassRail) Modifier.clipToBounds() else Modifier),
                 ) {
                     // 从平台 view tree 桥接 back dispatcher：缺失时 miuix-nav 的 PredictiveBackHandler 会
                     // 因 LocalNavigationEventDispatcherOwner 为 null 而 inert（预测性返回完全失效）。
@@ -207,7 +216,21 @@ private fun PersistentNavigationRail(
     mainPagerState: MainPagerState,
     navigator: Navigator,
     expandRail: Boolean,
+    backdrop: LayerBackdrop?,
 ) {
+    if (isGlassEffectActive()) {
+        GlassNavigationRailHost(
+            items = navigationItems,
+            selectedIndex = mainPagerState.selectedPage,
+            onSelect = { index ->
+                while (navigator.backStackSize() > 1) navigator.pop()
+                mainPagerState.animateToPage(index)
+            },
+            backdrop = backdrop,
+            expandRail = expandRail,
+        )
+        return
+    }
     val railState = rememberNavigationRailState(
         initialValue = if (expandRail) NavigationRailValue.Expanded else NavigationRailValue.Collapsed,
     )

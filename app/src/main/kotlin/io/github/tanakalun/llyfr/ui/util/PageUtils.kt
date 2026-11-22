@@ -13,6 +13,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import io.github.tanakalun.llyfr.core.PowerSaveModeTracker
 import io.github.tanakalun.llyfr.data.settings.SettingsStore
+import io.github.tanakalun.llyfr.ui.components.glass.AppIconButton
+import io.github.tanakalun.llyfr.ui.components.glass.isGlassEffectActive
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
@@ -20,11 +22,12 @@ import top.yukonga.miuix.kmp.blur.BlendColorEntry
 import top.yukonga.miuix.kmp.blur.BlurDefaults
 import top.yukonga.miuix.kmp.blur.LayerBackdrop
 import top.yukonga.miuix.kmp.blur.ProgressiveBlur
-import top.yukonga.miuix.kmp.blur.isRuntimeShaderSupported
 import top.yukonga.miuix.kmp.blur.progressiveTextureBlur
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 import top.yukonga.miuix.kmp.blur.textureBlur
+import top.yukonga.miuix.kmp.material.isRuntimeShaderSupported
 import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.glass.ChevronBackward
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -43,17 +46,18 @@ object AppBlur {
 
     @Composable
     fun barBlurActive(backdrop: LayerBackdrop?): Boolean =
-        SettingsStore.enableBlur && backdrop != null && !isPowerSave()
+        SettingsStore.materialEffect == SettingsStore.EFFECT_BLUR && backdrop != null && !isPowerSave()
 }
 
 @Composable
 fun isPowerSave(): Boolean =
     PowerSaveModeTracker.isPowerSaveMode.collectAsState().value
 
+/** 兼容旧调用点：返回内容采样层（glass / blur 都可用，无质感时为 null）。 */
 @Composable
 fun rememberBlurBackdrop(): LayerBackdrop? {
     val powerSave by PowerSaveModeTracker.isPowerSaveMode.collectAsState()
-    if (!SettingsStore.enableBlur || powerSave || !isRuntimeShaderSupported()) return null
+    if (SettingsStore.materialEffect == SettingsStore.EFFECT_NONE || powerSave || !isRuntimeShaderSupported()) return null
     val surfaceColor = MiuixTheme.colorScheme.surface
     return rememberLayerBackdrop {
         drawRect(surfaceColor)
@@ -68,7 +72,8 @@ fun BlurredBar(
     scrollBehavior: ScrollBehavior? = null,
     content: @Composable () -> Unit,
 ) {
-    val enabled = blurActive && backdrop != null && SettingsStore.enableBlur && !isPowerSave()
+    val enabled = blurActive && backdrop != null &&
+        SettingsStore.materialEffect == SettingsStore.EFFECT_BLUR && !isPowerSave()
     val isProgressive = enabled && SettingsStore.blurStyle == AppBlur.STYLE_PROGRESSIVE
     val barBackgroundColor = MiuixTheme.colorScheme.surface
 
@@ -120,6 +125,16 @@ fun BackNavigationIcon(
     modifier: Modifier = Modifier,
     tint: Color = MiuixTheme.colorScheme.onBackground,
 ) {
+    if (isGlassEffectActive()) {
+        AppIconButton(
+            icon = MiuixIcons.Glass.ChevronBackward,
+            contentDescription = null,
+            onClick = onClick,
+            modifier = modifier,
+            tint = MiuixTheme.colorScheme.onSurface,
+        )
+        return
+    }
     val layoutDirection = LocalLayoutDirection.current
     IconButton(
         modifier = modifier,

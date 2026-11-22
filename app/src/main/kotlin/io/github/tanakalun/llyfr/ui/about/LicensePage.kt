@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,15 +27,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.tanakalun.llyfr.LocalNavigator
 import io.github.tanakalun.llyfr.ui.util.adaptiveContentWindowInsets
 import io.github.tanakalun.llyfr.R
+import io.github.tanakalun.llyfr.ui.components.glass.AppTopAppBar
+import io.github.tanakalun.llyfr.ui.components.glass.LocalPageBackdrop
+import io.github.tanakalun.llyfr.ui.components.glass.rememberSurfaceBackdrop
 import io.github.tanakalun.llyfr.LocalIsWideScreen
 import io.github.tanakalun.llyfr.core.AppViewModelFactory
 import io.github.tanakalun.llyfr.ui.util.BackNavigationIcon
-import io.github.tanakalun.llyfr.ui.util.BlurredBar
-import io.github.tanakalun.llyfr.ui.util.rememberBlurBackdrop
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
-import top.yukonga.miuix.kmp.basic.SmallTopAppBar
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -47,27 +48,23 @@ fun LicensePage(
     val navigator = LocalNavigator.current
     val isWideScreen = LocalIsWideScreen.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val backdrop = rememberBlurBackdrop()
-    val barColor = if (backdrop != null) Color.Transparent else MiuixTheme.colorScheme.surface
+    val backdrop = rememberSurfaceBackdrop()
     val topAppBarScrollBehavior = MiuixScrollBehavior()
 
+    CompositionLocalProvider(LocalPageBackdrop provides backdrop) {
     Scaffold(
         contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
         topBar = {
-            BlurredBar(
+            AppTopAppBar(
+                title = stringResource(R.string.third_party_licenses),
                 backdrop = backdrop,
+                large = false,
                 scrollBehavior = topAppBarScrollBehavior,
-            ) {
-                SmallTopAppBar(
-                    title = stringResource(R.string.third_party_licenses),
-                    scrollBehavior = topAppBarScrollBehavior,
-                    color = barColor,
-                    defaultWindowInsetsPadding = !isWideScreen,
-                    navigationIcon = {
-                        BackNavigationIcon(onClick = { navigator.pop() })
-                    },
-                )
-            }
+                defaultWindowInsetsPadding = !isWideScreen,
+                navigationIcon = {
+                    BackNavigationIcon(onClick = { navigator.pop() })
+                },
+            )
         },
     ) { scaffoldPadding ->
         val uriHandler = LocalUriHandler.current
@@ -115,4 +112,5 @@ fun LicensePage(
             }
         }
     }
+}
 }

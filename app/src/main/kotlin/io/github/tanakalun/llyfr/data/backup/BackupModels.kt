@@ -37,6 +37,7 @@ data class BackupSettings(
     val paletteStyle: Int = 0,
     val colorSpec: Int = 0,
     val enableBlur: Boolean = true,
+    val materialEffect: Int = -1,
     val blurStyle: Int = 0,
     val useFloatingNavbar: Boolean = false,
     val floatingNavbarStyle: Int = 0,

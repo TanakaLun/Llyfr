@@ -20,14 +20,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.tanakalun.llyfr.R
-import top.yukonga.miuix.kmp.basic.Icon
-import top.yukonga.miuix.kmp.basic.IconButton
+import io.github.tanakalun.llyfr.ui.components.glass.AppBottomSheet
+import io.github.tanakalun.llyfr.ui.components.glass.AppIconButton
+import io.github.tanakalun.llyfr.ui.components.glass.isGlassEffectActive
 import top.yukonga.miuix.kmp.basic.NumberPicker
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.Close
-import top.yukonga.miuix.kmp.icon.extended.Ok
-import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
+import top.yukonga.miuix.kmp.icon.glass.Close
+import top.yukonga.miuix.kmp.icon.glass.Ok
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.util.Calendar
 
@@ -62,19 +62,20 @@ fun DateTimePickerSheet(
         if (day > daysInMonth) day = daysInMonth
     }
 
-    OverlayBottomSheet(
+    AppBottomSheet(
         show = show,
         title = stringResource(R.string.choose_reminder_time),
         startAction = {
-            IconButton(onClick = onDismiss) {
-                Icon(
-                    imageVector = MiuixIcons.Close,
-                    contentDescription = stringResource(R.string.cancel),
-                )
-            }
+            AppIconButton(
+                icon = MiuixIcons.Glass.Close,
+                contentDescription = stringResource(R.string.cancel),
+                onClick = onDismiss,
+            )
         },
         endAction = {
-            IconButton(
+            AppIconButton(
+                icon = MiuixIcons.Glass.Ok,
+                contentDescription = stringResource(R.string.done),
                 onClick = {
                     val cal = Calendar.getInstance().apply {
                         set(year, month - 1, day, hour, minute, 0)
@@ -82,12 +83,7 @@ fun DateTimePickerSheet(
                     }
                     onConfirm(cal.timeInMillis)
                 },
-            ) {
-                Icon(
-                    imageVector = MiuixIcons.Ok,
-                    contentDescription = stringResource(R.string.done),
-                )
-            }
+            )
         },
         onDismissRequest = onDismiss,
     ) {

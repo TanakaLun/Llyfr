@@ -23,6 +23,7 @@ object SettingsStore {
     private const val KEY_COLOR_SPEC = "colorSpec"
     private const val KEY_ENABLE_BLUR = "enableBlur"
     private const val KEY_BLUR_STYLE = "blurStyle"
+    private const val KEY_MATERIAL_EFFECT = "materialEffect"
     private const val KEY_USE_FLOATING_NAVBAR = "useFloatingNavbar"
     private const val KEY_FLOATING_NAVBAR_STYLE = "floatingNavbarStyle"
     private const val KEY_FLOATING_NAVBAR_POSITION = "floatingNavbarPosition"
@@ -41,6 +42,11 @@ object SettingsStore {
     const val LANG_ZH_TW = 3
     const val LANG_JA = 4
 
+    /** 质感效果：无 / miuix blur / miuix glass。 */
+    const val EFFECT_NONE = 0
+    const val EFFECT_BLUR = 1
+    const val EFFECT_GLASS = 2
+
     private lateinit var prefs: SharedPreferences
     private var initialized = false
 
@@ -52,7 +58,7 @@ object SettingsStore {
         private set
     var colorSpec by mutableIntStateOf(0)
         private set
-    var enableBlur by mutableStateOf(true)
+    var materialEffect by mutableIntStateOf(EFFECT_BLUR)
         private set
     var blurStyle by mutableIntStateOf(0)
         private set
@@ -87,7 +93,14 @@ object SettingsStore {
         keyColorIndex = prefs.getInt(KEY_KEY_COLOR_INDEX, 0)
         paletteStyle = prefs.getInt(KEY_PALETTE_STYLE, 0)
         colorSpec = prefs.getInt(KEY_COLOR_SPEC, 0)
-        enableBlur = prefs.getBoolean(KEY_ENABLE_BLUR, true)
+        // 迁移旧版“启用模糊”开关：有 materialEffect 用它，否则按 enableBlur 映射到 blur / none。
+        materialEffect = if (prefs.contains(KEY_MATERIAL_EFFECT)) {
+            prefs.getInt(KEY_MATERIAL_EFFECT, EFFECT_BLUR).coerceIn(EFFECT_NONE, EFFECT_GLASS)
+        } else if (prefs.contains(KEY_ENABLE_BLUR)) {
+            if (prefs.getBoolean(KEY_ENABLE_BLUR, true)) EFFECT_BLUR else EFFECT_NONE
+        } else {
+            EFFECT_BLUR
+        }
         blurStyle = prefs.getInt(KEY_BLUR_STYLE, 0)
         useFloatingNavbar = prefs.getBoolean(KEY_USE_FLOATING_NAVBAR, false)
         floatingNavbarStyle = prefs.getInt(KEY_FLOATING_NAVBAR_STYLE, 0)
@@ -123,8 +136,12 @@ swipeBackEnabled = prefs.getBoolean(KEY_SWIPE_BACK, false)
     }
 
     fun updateEnableBlur(value: Boolean) {
-        enableBlur = value
-        prefs.edit().putBoolean(KEY_ENABLE_BLUR, value).apply()
+        updateMaterialEffect(if (value) EFFECT_BLUR else EFFECT_NONE)
+    }
+
+    fun updateMaterialEffect(value: Int) {
+        materialEffect = value.coerceIn(EFFECT_NONE, EFFECT_GLASS)
+        prefs.edit().putInt(KEY_MATERIAL_EFFECT, materialEffect).apply()
     }
 
     fun updateBlurStyle(value: Int) {

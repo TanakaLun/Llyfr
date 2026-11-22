@@ -28,6 +28,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -83,12 +84,16 @@ import io.github.tanakalun.llyfr.ui.navigation.Route
 import io.github.tanakalun.llyfr.data.model.ContentSegment
 import io.github.tanakalun.llyfr.data.settings.SettingsStore
 import io.github.tanakalun.llyfr.ui.highlightCode
+import io.github.tanakalun.llyfr.ui.components.glass.AppIconButton
+import io.github.tanakalun.llyfr.ui.components.glass.LocalPageBackdrop
+import io.github.tanakalun.llyfr.ui.components.glass.AppTopAppBar
+import io.github.tanakalun.llyfr.ui.components.glass.isGlassEffectActive
+import io.github.tanakalun.llyfr.ui.components.glass.rememberSurfaceBackdrop
 import io.github.tanakalun.llyfr.ui.util.BackNavigationIcon
 import top.yukonga.miuix.kmp.basic.FloatingToolbar
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Scaffold
-import top.yukonga.miuix.kmp.basic.SmallTopAppBar
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
@@ -96,8 +101,9 @@ import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.AddCircle
 import top.yukonga.miuix.kmp.icon.extended.Delete
 import top.yukonga.miuix.kmp.icon.extended.Lock
-import top.yukonga.miuix.kmp.icon.extended.Ok
+import top.yukonga.miuix.kmp.icon.glass.Ok
 import top.yukonga.miuix.kmp.icon.extended.Unlock
+import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.LocalContentColor
 
@@ -196,31 +202,34 @@ fun NoteEditorPage(
         return
     }
 
+    val backdrop = rememberSurfaceBackdrop()
+    CompositionLocalProvider(LocalPageBackdrop provides backdrop) {
     Scaffold(
         contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
         topBar = {
-            SmallTopAppBar(
+            AppTopAppBar(
                 title = stringResource(
                     if (uiState.isNew) R.string.new_note else R.string.edit_note
                 ),
-                color = MiuixTheme.colorScheme.surface,
+                backdrop = backdrop,
+                large = false,
                 defaultWindowInsetsPadding = !isWideScreen,
                 navigationIcon = {
                     BackNavigationIcon(onClick = { viewModel.save(markdownResolver, onBack) })
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.toggleReadOnly() }) {
-                        Icon(
-                            imageVector = if (readOnly) MiuixIcons.Unlock else MiuixIcons.Lock,
-                            contentDescription = stringResource(R.string.read_only),
-                        )
-                    }
-                    IconButton(onClick = { viewModel.save(markdownResolver, onBack) }) {
-                        Icon(
-                            imageVector = MiuixIcons.Ok,
-                            contentDescription = stringResource(R.string.save),
-                        )
-                    }
+                    AppIconButton(
+                        icon = if (readOnly) MiuixIcons.Unlock else MiuixIcons.Lock,
+                        contentDescription = stringResource(R.string.read_only),
+                        onClick = { viewModel.toggleReadOnly() },
+                        backdrop = backdrop,
+                    )
+                    AppIconButton(
+                        icon = MiuixIcons.Glass.Ok,
+                        contentDescription = stringResource(R.string.save),
+                        onClick = { viewModel.save(markdownResolver, onBack) },
+                        backdrop = backdrop,
+                    )
                 },
             )
         },
@@ -228,6 +237,11 @@ fun NoteEditorPage(
         val topPadding = scaffoldPadding.calculateTopPadding()
         val bottomPadding = scaffoldPadding.calculateBottomPadding()
 
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .then(if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier),
+        ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -611,7 +625,10 @@ fun NoteEditorPage(
                     .imePadding(),
             )
         }
+        }
     }
+}
+
 }
 
 @Composable
@@ -621,9 +638,10 @@ private fun UnreadableNoteScaffold(
 ) {
     Scaffold(
         topBar = {
-            SmallTopAppBar(
+            AppTopAppBar(
                 title = stringResource(R.string.edit_note),
-                color = MiuixTheme.colorScheme.surface,
+                backdrop = rememberSurfaceBackdrop(),
+                large = false,
                 navigationIcon = {
                     BackNavigationIcon(onClick = onBack)
                 },

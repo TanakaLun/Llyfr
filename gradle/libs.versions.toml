@@ -1,9 +1,9 @@
 [versions]
 agp = "9.5.2"
 kotlin = "2.4.21"
+miuix = "0.9.5-beta03"
+composeBom = "2026.11.01"
 ksp = "2.3.14"
-miuix = "0.9.4"
-composeBom = "2026.09.00"
 activity = "1.13.0"
 lifecycle = "2.11.0"
 core = "1.19.1"
@@ -18,6 +18,8 @@ sqlite = "2.6.2"
 [libraries]
 miuix-ui = { group = "top.yukonga.miuix.kmp", name = "miuix-ui-android", version.ref = "miuix" }
 miuix-blur = { group = "top.yukonga.miuix.kmp", name = "miuix-blur-android", version.ref = "miuix" }
+miuix-glass = { group = "top.yukonga.miuix.kmp", name = "miuix-glass-android", version.ref = "miuix" }
+miuix-glass-icons = { group = "top.yukonga.miuix.kmp", name = "miuix-glass-icons-android", version.ref = "miuix" }
 miuix-nav = { group = "top.yukonga.miuix.kmp", name = "miuix-nav-android", version.ref = "miuix" }
 miuix-preference = { group = "top.yukonga.miuix.kmp", name = "miuix-preference", version.ref = "miuix" }
 miuix-icons = { group = "top.yukonga.miuix.kmp", name = "miuix-icons-android", version.ref = "miuix" }

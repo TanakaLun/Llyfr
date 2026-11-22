@@ -15,6 +15,13 @@ room3 {
     schemaDirectory("$projectDir/schemas")
 }
 
+// 许可证元数据：`./gradlew :app:exportLibraryDefinitions` 生成，CI 在打包前也会重新导出。
+aboutLibraries {
+    export {
+        outputFile = file("src/main/res/raw/aboutlibraries.json")
+    }
+}
+
 android {
     namespace = "io.github.tanakalun.llyfr"
     compileSdk {

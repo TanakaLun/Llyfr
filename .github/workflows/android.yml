@@ -41,10 +41,15 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Export library definitions
+        run: ./gradlew :app:exportLibraryDefinitions --console=plain
+
       - name: Build debug APK
         shell: bash
         run: |
-          chmod +x gradlew
           set +e
           ./gradlew :app:assembleDebug --stacktrace --console=plain 2>&1 | tee build.log
           status=${PIPESTATUS[0]}

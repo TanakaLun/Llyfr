@@ -1,6 +1,7 @@
 package io.github.tanakalun.llyfr
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -47,6 +49,7 @@ import top.yukonga.miuix.kmp.basic.NavigationRail
 import top.yukonga.miuix.kmp.basic.NavigationRailItem
 import top.yukonga.miuix.kmp.basic.NavigationRailValue
 import top.yukonga.miuix.kmp.basic.rememberNavigationRailState
+import top.yukonga.miuix.kmp.glass.GlassNavigationRailDefaults
 import top.yukonga.miuix.kmp.blur.LayerBackdrop
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.icon.MiuixIcons
@@ -138,67 +141,105 @@ fun AppContent(
         CompositionLocalProvider(
             LocalOnBackSink provides { currentBack = it },
         ) {
-            Row(modifier = Modifier.fillMaxSize()) {
-                if (isWideScreen) {
+            val navContent: @Composable () -> Unit = {
+                // 从平台 view tree 桥接 back dispatcher：缺失时 miuix-nav 的 PredictiveBackHandler 会
+                // 因 LocalNavigationEventDispatcherOwner 为 null 而 inert（预测性返回完全失效）。
+                WindowNavigationEventScope {
+                    NavDisplay(
+                        backStack = backStack,
+                        onBack = {
+                            val cb = currentBack
+                            if (cb != null) cb() else navigator.pop()
+                        },
+                        transition = NavTransitions.MiuixDefault,
+                        effects = effects,
+                    ) {
+                        entry<Route.NotesList>(swipeDismiss = swipeDismiss) {
+                            Home(
+                                navigationItems = navigationItems,
+                                mainPagerState = mainPagerState,
+                                onEditNote = { id -> navigator.push(Route.NoteEditor(id)) },
+                                onEditChecklist = { id -> navigator.push(Route.ChecklistEditor(id)) },
+                                onEditTodo = { id -> navigator.push(Route.TodoEditor(id)) },
+                                onCreateNote = { navigator.push(Route.NoteEditor()) },
+                                onCreateChecklist = { navigator.push(Route.ChecklistEditor()) },
+                                onCreateTodo = { navigator.push(Route.TodoEditor()) },
+                                onAboutClick = { navigator.push(Route.About) },
+                            )
+                        }
+                        entry<Route.NoteEditor>(swipeDismiss = swipeDismiss) { route ->
+                            NoteEditorPage(noteId = route.noteId)
+                        }
+                        entry<Route.ChecklistEditor>(swipeDismiss = swipeDismiss) { route ->
+                            ChecklistPage(noteId = route.noteId)
+                        }
+                        entry<Route.TodoEditor>(swipeDismiss = swipeDismiss) { route ->
+                            TodoEditorPage(noteId = route.noteId)
+                        }
+                        entry<Route.About>(swipeDismiss = swipeDismiss) {
+                            AboutPage()
+                        }
+                        entry<Route.License>(swipeDismiss = swipeDismiss) {
+                            LicensePage()
+                        }
+                        entry<Route.ImageViewer>(swipeDismiss = swipeDismiss) { route ->
+                            ImageViewerPage(imagePath = route.imagePath)
+                        }
+                    }
+                }
+            }
+
+            if (isWideScreen && glassRail) {
+                // 对齐 example：内容铺满整窗，玻璃 rail 作为悬浮层叠在上面。
+                // GlassNavigationRail 的根节点是 fillMaxSize，放进 Row 会吃掉全部宽度，
+                // 把 NavDisplay 挤成 0 宽，导致宽屏下整屏渲染不出来。
+                val railStartInset = if (expandRail) {
+                    GlassNavigationRailDefaults.Margin + GlassNavigationRailDefaults.ExpandedWidth
+                } else {
+                    0.dp
+                }
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .then(if (railBackdrop != null) Modifier.layerBackdrop(railBackdrop) else Modifier),
+                    ) {
+                        if (railStartInset > 0.dp) {
+                            Box(modifier = Modifier.fillMaxSize().padding(start = railStartInset)) {
+                                navContent()
+                            }
+                        } else {
+                            navContent()
+                        }
+                    }
                     PersistentNavigationRail(
                         navigationItems = navigationItems,
                         mainPagerState = mainPagerState,
                         navigator = navigator,
                         expandRail = expandRail,
                         backdrop = railBackdrop,
+                        modifier = Modifier.align(Alignment.TopStart),
                     )
                 }
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .then(if (railBackdrop != null) Modifier.layerBackdrop(railBackdrop) else Modifier)
-                        .then(if (isWideScreen && !glassRail) Modifier.clipToBounds() else Modifier),
-                ) {
-                    // 从平台 view tree 桥接 back dispatcher：缺失时 miuix-nav 的 PredictiveBackHandler 会
-                    // 因 LocalNavigationEventDispatcherOwner 为 null 而 inert（预测性返回完全失效）。
-                    WindowNavigationEventScope {
-                        NavDisplay(
-                            backStack = backStack,
-                            onBack = {
-                                val cb = currentBack
-                                if (cb != null) cb() else navigator.pop()
-                            },
-                            transition = NavTransitions.MiuixDefault,
-                            effects = effects,
-                        ) {
-                            entry<Route.NotesList>(swipeDismiss = swipeDismiss) {
-                                Home(
-                                    navigationItems = navigationItems,
-                                    mainPagerState = mainPagerState,
-onEditNote = { id -> navigator.push(Route.NoteEditor(id)) },
-                            onEditChecklist = { id -> navigator.push(Route.ChecklistEditor(id)) },
-                            onEditTodo = { id -> navigator.push(Route.TodoEditor(id)) },
-                            onCreateNote = { navigator.push(Route.NoteEditor()) },
-                            onCreateChecklist = { navigator.push(Route.ChecklistEditor()) },
-                            onCreateTodo = { navigator.push(Route.TodoEditor()) },
-                            onAboutClick = { navigator.push(Route.About) },
-                                )
-                            }
-                            entry<Route.NoteEditor>(swipeDismiss = swipeDismiss) { route ->
-                                NoteEditorPage(noteId = route.noteId)
-                            }
-entry<Route.ChecklistEditor>(swipeDismiss = swipeDismiss) { route ->
-                        ChecklistPage(noteId = route.noteId)
+            } else {
+                Row(modifier = Modifier.fillMaxSize()) {
+                    if (isWideScreen) {
+                        PersistentNavigationRail(
+                            navigationItems = navigationItems,
+                            mainPagerState = mainPagerState,
+                            navigator = navigator,
+                            expandRail = expandRail,
+                            backdrop = railBackdrop,
+                        )
                     }
-                    entry<Route.TodoEditor>(swipeDismiss = swipeDismiss) { route ->
-                        TodoEditorPage(noteId = route.noteId)
-                    }
-                            entry<Route.About>(swipeDismiss = swipeDismiss) {
-                                AboutPage()
-                            }
-                            entry<Route.License>(swipeDismiss = swipeDismiss) {
-                                LicensePage()
-                            }
-                            entry<Route.ImageViewer>(swipeDismiss = swipeDismiss) { route ->
-                                ImageViewerPage(imagePath = route.imagePath)
-                            }
-                        }
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .then(if (railBackdrop != null) Modifier.layerBackdrop(railBackdrop) else Modifier)
+                            .then(if (isWideScreen) Modifier.clipToBounds() else Modifier),
+                    ) {
+                        navContent()
                     }
                 }
             }
@@ -217,6 +258,7 @@ private fun PersistentNavigationRail(
     navigator: Navigator,
     expandRail: Boolean,
     backdrop: LayerBackdrop?,
+    modifier: Modifier = Modifier,
 ) {
     if (isGlassEffectActive()) {
         GlassNavigationRailHost(
@@ -228,6 +270,7 @@ private fun PersistentNavigationRail(
             },
             backdrop = backdrop,
             expandRail = expandRail,
+            modifier = modifier,
         )
         return
     }
@@ -239,6 +282,7 @@ private fun PersistentNavigationRail(
     }
     NavigationRail(
         state = railState,
+        modifier = modifier,
     ) {
         navigationItems.forEachIndexed { index, item ->
             NavigationRailItem(

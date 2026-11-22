@@ -24,6 +24,8 @@ import io.github.tanakalun.llyfr.core.PowerSaveModeTracker
 import io.github.tanakalun.llyfr.data.settings.SettingsStore
 import io.github.tanakalun.llyfr.ui.isInDarkTheme
 import io.github.tanakalun.llyfr.ui.util.BlurredBar
+import top.yukonga.miuix.kmp.basic.CardColors
+import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.NavigationBar
@@ -96,6 +98,25 @@ fun rememberSurfaceBackdrop(): LayerBackdrop? {
     return rememberLayerBackdrop {
         drawRect(surfaceColor)
         drawContent()
+    }
+}
+
+/**
+ * 浮层（sheet）内嵌 Card 的配色，复刻 Miuix example：
+ * - glass：`onBackground` 低透明度填充（深色 36/255、浅色 15/255），让玻璃材质透出；
+ * - 非 glass：`secondaryContainer`，与 sheet 背景区分开（example 的 BottomSheetSection 做法）。
+ */
+@Composable
+fun sheetCardColors(): CardColors {
+    return if (isGlassEffectActive()) {
+        val alpha = if (isInDarkTheme()) 36f / 255f else 15f / 255f
+        CardDefaults.defaultColors(
+            color = MiuixTheme.colorScheme.onBackground.copy(alpha = alpha),
+        )
+    } else {
+        CardDefaults.defaultColors(
+            color = MiuixTheme.colorScheme.secondaryContainer,
+        )
     }
 }
 

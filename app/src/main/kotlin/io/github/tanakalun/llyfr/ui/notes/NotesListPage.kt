@@ -50,6 +50,7 @@ import io.github.tanakalun.llyfr.ui.components.glass.AppDialogButton
 import io.github.tanakalun.llyfr.ui.components.glass.AppIconButton
 import io.github.tanakalun.llyfr.ui.components.glass.AppSegmentedTabRow
 import io.github.tanakalun.llyfr.ui.components.glass.AppTopAppBar
+import io.github.tanakalun.llyfr.ui.components.glass.sheetCardColors
 import io.github.tanakalun.llyfr.ui.components.glass.isGlassEffectActive
 import io.github.tanakalun.llyfr.ui.components.glass.rememberSurfaceBackdrop
 import io.github.tanakalun.llyfr.util.stripMarkdown
@@ -326,11 +327,8 @@ fun NotesListPage(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    colors = CardDefaults.defaultColors(
-                        color = MiuixTheme.colorScheme.surface,
-                        contentColor = MiuixTheme.colorScheme.onSurface,
-                    ),
+                        .padding(bottom = 12.dp),
+                    colors = sheetCardColors(),
                 ) {
                     ArrowPreference(
                         title = stringResource(R.string.note),

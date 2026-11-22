@@ -39,7 +39,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -52,6 +51,7 @@ import io.github.tanakalun.llyfr.R
 import io.github.tanakalun.llyfr.ui.components.glass.AppBottomSheet
 import io.github.tanakalun.llyfr.ui.components.glass.AppDropdownPreference
 import io.github.tanakalun.llyfr.ui.components.glass.PinScrollBehaviorToRest
+import io.github.tanakalun.llyfr.ui.components.glass.sheetCardColors
 import io.github.tanakalun.llyfr.ui.components.glass.isGlassEffectActive
 import io.github.tanakalun.llyfr.ui.components.glass.LocalPageBackdrop
 import io.github.tanakalun.llyfr.ui.isInDarkTheme
@@ -79,6 +79,7 @@ import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.glass.GlassTopAppBar
 import top.yukonga.miuix.kmp.material.GlassDefaults
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 import io.github.tanakalun.llyfr.ui.isInDarkTheme
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -456,13 +457,21 @@ private fun AboutContent(
     AppBottomSheet(
         show = showTextureSet,
         title = stringResource(R.string.background_effect),
-        insideMargin = DpSize(0.dp, 0.dp),
         onDismissRequest = {
             showTextureSet = false
         },
     ) {
-        LazyColumn {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .scrollEndHaptic()
+                .overScrollVertical(),
+        ) {
             item {
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                    colors = sheetCardColors(),
+                ) {
                 val effectVariantOptions = listOf("OS2", "OS3")
                 AppDropdownPreference(
                     title = stringResource(R.string.effect_variant),
@@ -486,6 +495,7 @@ private fun AboutContent(
                         isFullScreenBackground.value = it
                     },
                 )
+                }
             }
             item { Spacer(modifier = Modifier.height(WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())) }
         }

@@ -24,6 +24,8 @@ import io.github.tanakalun.llyfr.core.PowerSaveModeTracker
 import io.github.tanakalun.llyfr.data.settings.SettingsStore
 import io.github.tanakalun.llyfr.ui.isInDarkTheme
 import io.github.tanakalun.llyfr.ui.util.BlurredBar
+import top.yukonga.miuix.kmp.basic.CardColors
+import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.NavigationBar
@@ -97,6 +99,20 @@ fun rememberSurfaceBackdrop(): LayerBackdrop? {
         drawRect(surfaceColor)
         drawContent()
     }
+}
+
+/**
+ * 玻璃浮层内嵌 Card 的配色：对齐 Miuix example 的说明——
+ * 用 `onBackground` 的低透明度填充，让底层玻璃材质透出来，而不是铺一块不透明 surface。
+ * 非 glass 模式返回默认卡片配色。
+ */
+@Composable
+fun glassCardColors(): CardColors {
+    if (!isGlassEffectActive()) return CardDefaults.defaultColors()
+    val alpha = if (isInDarkTheme()) 36f / 255f else 15f / 255f
+    return CardDefaults.defaultColors(
+        color = MiuixTheme.colorScheme.onBackground.copy(alpha = alpha),
+    )
 }
 
 /**

@@ -52,6 +52,7 @@ import io.github.tanakalun.llyfr.R
 import io.github.tanakalun.llyfr.ui.components.glass.AppBottomSheet
 import io.github.tanakalun.llyfr.ui.components.glass.AppDropdownPreference
 import io.github.tanakalun.llyfr.ui.components.glass.PinScrollBehaviorToRest
+import io.github.tanakalun.llyfr.ui.components.glass.glassCardColors
 import io.github.tanakalun.llyfr.ui.components.glass.isGlassEffectActive
 import io.github.tanakalun.llyfr.ui.components.glass.LocalPageBackdrop
 import io.github.tanakalun.llyfr.ui.isInDarkTheme
@@ -463,6 +464,10 @@ private fun AboutContent(
     ) {
         LazyColumn {
             item {
+                Card(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    colors = glassCardColors(),
+                ) {
                 val effectVariantOptions = listOf("OS2", "OS3")
                 AppDropdownPreference(
                     title = stringResource(R.string.effect_variant),
@@ -486,6 +491,7 @@ private fun AboutContent(
                         isFullScreenBackground.value = it
                     },
                 )
+                }
             }
             item { Spacer(modifier = Modifier.height(WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())) }
         }

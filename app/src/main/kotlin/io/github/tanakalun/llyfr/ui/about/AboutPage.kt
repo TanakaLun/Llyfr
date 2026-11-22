@@ -454,6 +454,7 @@ private fun AboutContent(
     AppBottomSheet(
         show = showTextureSet,
         title = stringResource(R.string.background_effect),
+        insideMargin = DpSize(0.dp, 0.dp),
         onDismissRequest = {
             showTextureSet = false
         },

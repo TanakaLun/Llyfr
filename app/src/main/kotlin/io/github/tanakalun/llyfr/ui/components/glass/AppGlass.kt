@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import io.github.tanakalun.llyfr.core.PowerSaveModeTracker
 import io.github.tanakalun.llyfr.data.settings.SettingsStore
@@ -39,6 +40,7 @@ import top.yukonga.miuix.kmp.blur.LayerBackdrop
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 import top.yukonga.miuix.kmp.glass.GlassBottomSheet
+import top.yukonga.miuix.kmp.layout.BottomSheetDefaults
 import top.yukonga.miuix.kmp.glass.GlassDialog
 import top.yukonga.miuix.kmp.glass.GlassDialogButton
 import top.yukonga.miuix.kmp.glass.GlassDialogButtonRole
@@ -467,6 +469,7 @@ fun AppBottomSheet(
     onDismissRequest: () -> Unit,
     title: String? = null,
     modifier: Modifier = Modifier,
+    insideMargin: DpSize = BottomSheetDefaults.insideMargin,
     startAction: (@Composable () -> Unit)? = null,
     endAction: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,
@@ -478,6 +481,7 @@ fun AppBottomSheet(
             onDismissRequest = onDismissRequest,
             title = title,
             modifier = modifier,
+            insideMargin = insideMargin,
             startAction = startAction,
             endAction = endAction,
         ) {
@@ -488,6 +492,7 @@ fun AppBottomSheet(
             show = show,
             modifier = modifier,
             title = title,
+            insideMargin = insideMargin,
             startAction = startAction,
             endAction = endAction,
             onDismissRequest = onDismissRequest,

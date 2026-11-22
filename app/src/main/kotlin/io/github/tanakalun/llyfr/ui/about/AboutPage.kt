@@ -51,8 +51,10 @@ import io.github.tanakalun.llyfr.ui.navigation.Route
 import io.github.tanakalun.llyfr.R
 import io.github.tanakalun.llyfr.ui.components.glass.AppBottomSheet
 import io.github.tanakalun.llyfr.ui.components.glass.AppDropdownPreference
-import io.github.tanakalun.llyfr.ui.components.glass.AppTopAppBar
+import io.github.tanakalun.llyfr.ui.components.glass.isGlassEffectActive
 import io.github.tanakalun.llyfr.ui.components.glass.LocalPageBackdrop
+import io.github.tanakalun.llyfr.ui.isInDarkTheme
+import io.github.tanakalun.llyfr.ui.util.BlurredBar
 import io.github.tanakalun.llyfr.ui.components.glass.rememberSurfaceBackdrop
 import io.github.tanakalun.llyfr.ui.components.blend.ColorBlendToken
 import io.github.tanakalun.llyfr.ui.components.effect.BgEffectBackground
@@ -69,9 +71,12 @@ import top.yukonga.miuix.kmp.blur.BlurDefaults
 import top.yukonga.miuix.kmp.material.isRuntimeShaderSupported
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.textureBlur
+import top.yukonga.miuix.kmp.basic.SmallTopAppBar
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.squircle.squircleSurface
+import top.yukonga.miuix.kmp.glass.GlassTopAppBar
+import top.yukonga.miuix.kmp.material.GlassDefaults
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 import io.github.tanakalun.llyfr.ui.isInDarkTheme
@@ -102,20 +107,55 @@ fun AboutPage() {
     }
 
     val backdrop = rememberSurfaceBackdrop()
+    val collapsed by remember { derivedStateOf { scrollProgress == 1f } }
+    val blurActive by remember(backdrop) { derivedStateOf { backdrop != null && scrollProgress == 1f } }
     CompositionLocalProvider(LocalPageBackdrop provides backdrop) {
     Scaffold(
         contentWindowInsets = adaptiveContentWindowInsets(isWideScreen),
         topBar = {
-            AppTopAppBar(
-                title = stringResource(R.string.about),
-                backdrop = backdrop,
-                large = false,
-                scrollBehavior = topAppBarScrollBehavior,
-                defaultWindowInsetsPadding = false,
-                navigationIcon = {
-                    BackNavigationIcon(onClick = { navigator.pop() })
-                },
-            )
+            val titleAlpha = {
+                ((scrollProgress - 0.35f) / 0.65f).coerceIn(0f, 1f)
+            }
+            if (isGlassEffectActive()) {
+                GlassTopAppBar(
+                    title = stringResource(R.string.about),
+                    isContentScrolled = collapsed,
+                    backdrop = backdrop,
+                    scrollBehavior = topAppBarScrollBehavior,
+                    expandable = false,
+                    progressiveBlur = true,
+                    style = GlassDefaults.style(isInDarkTheme()),
+                    defaultWindowInsetsPadding = false,
+                    titleAlpha = titleAlpha,
+                    backgroundAlpha = { if (collapsed) 1f else 0f },
+                    navigationIcon = {
+                        BackNavigationIcon(onClick = { navigator.pop() })
+                    },
+                )
+            } else {
+                val barColor = if (blurActive) {
+                    Color.Transparent
+                } else {
+                    if (collapsed) MiuixTheme.colorScheme.surface else Color.Transparent
+                }
+                val titleColor = MiuixTheme.colorScheme.onSurface.copy(alpha = titleAlpha())
+                BlurredBar(
+                    backdrop = backdrop,
+                    blurActive = blurActive,
+                    scrollBehavior = topAppBarScrollBehavior,
+                ) {
+                    SmallTopAppBar(
+                        title = stringResource(R.string.about),
+                        scrollBehavior = topAppBarScrollBehavior,
+                        color = barColor,
+                        titleColor = titleColor,
+                        defaultWindowInsetsPadding = false,
+                        navigationIcon = {
+                            BackNavigationIcon(onClick = { navigator.pop() })
+                        },
+                    )
+                }
+            }
         },
     ) { scaffoldPadding ->
         Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {

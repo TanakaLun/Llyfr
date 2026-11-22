@@ -144,14 +144,29 @@ fun AppTopAppBar(
                     actions = actions,
                     bottomContent = bottomContent,
                 )
+            } else if (scrollBehavior != null) {
+                // 紧凑顶栏也要跟着滚动状态进模糊；写死 false 会让 band 永远不出现。
+                GlassTopAppBar(
+                    title = title,
+                    modifier = modifier,
+                    expandable = false,
+                    progressiveBlur = true,
+                    backdrop = backdrop,
+                    scrollBehavior = scrollBehavior,
+                    style = GlassDefaults.style(isInDarkTheme()),
+                    defaultWindowInsetsPadding = defaultWindowInsetsPadding,
+                    navigationIcon = navigationIcon,
+                    actions = actions,
+                    bottomContent = bottomContent,
+                )
             } else {
                 GlassTopAppBar(
                     title = title,
                     isContentScrolled = false,
                     modifier = modifier,
                     expandable = false,
+                    progressiveBlur = true,
                     backdrop = backdrop,
-                    scrollBehavior = scrollBehavior,
                     style = GlassDefaults.style(isInDarkTheme()),
                     defaultWindowInsetsPadding = defaultWindowInsetsPadding,
                     navigationIcon = navigationIcon,

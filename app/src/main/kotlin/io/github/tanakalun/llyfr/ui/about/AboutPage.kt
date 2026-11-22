@@ -51,6 +51,7 @@ import io.github.tanakalun.llyfr.ui.navigation.Route
 import io.github.tanakalun.llyfr.R
 import io.github.tanakalun.llyfr.ui.components.glass.AppBottomSheet
 import io.github.tanakalun.llyfr.ui.components.glass.AppDropdownPreference
+import io.github.tanakalun.llyfr.ui.components.glass.PinScrollBehaviorToRest
 import io.github.tanakalun.llyfr.ui.components.glass.isGlassEffectActive
 import io.github.tanakalun.llyfr.ui.components.glass.LocalPageBackdrop
 import io.github.tanakalun.llyfr.ui.isInDarkTheme
@@ -117,6 +118,7 @@ fun AboutPage() {
                 ((scrollProgress - 0.35f) / 0.65f).coerceIn(0f, 1f)
             }
             if (isGlassEffectActive()) {
+                PinScrollBehaviorToRest(topAppBarScrollBehavior)
                 GlassTopAppBar(
                     title = stringResource(R.string.about),
                     isContentScrolled = collapsed,

@@ -26,6 +26,11 @@ on:
         required: true
         type: boolean
         default: false
+      dry_run:
+        description: 'Dry run (build + artifact only, do not tag or publish)'
+        required: true
+        type: boolean
+        default: false
       custom_release_notes:
         description: 'Release Info'
         required: false
@@ -42,6 +47,9 @@ jobs:
     outputs:
       version_tag: ${{ steps.build-info.outputs.version_tag }}
       release_title: ${{ steps.generate-title.outputs.release_title }}
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
@@ -52,9 +60,15 @@ jobs:
       - name: Set up Java
         uses: actions/setup-java@v6
         with:
-          distribution: 'zulu'
-          java-version: '25'
+          distribution: 'temurin'
+          java-version: '21'
       
+      - name: Install Android SDK packages
+        run: |
+          SDKMANAGER=$(ls "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager | head -n 1)
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
+          "$SDKMANAGER" "platform-tools" "platforms;android-37" "platforms;android-37.2" || true
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6.4.1
         with:
@@ -167,10 +181,27 @@ jobs:
       - name: Grant execute permission to gradlew
         run: chmod +x gradlew
 
+      - name: Decode signing keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [[ -z "$KEYSTORE_BASE64" ]]; then
+            echo "::error::KEYSTORE_BASE64 secret is not configured"
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+          echo "KEYSTORE_FILE=$RUNNER_TEMP/release.keystore" >> "$GITHUB_ENV"
+
+      - name: Export library definitions
+        run: ./gradlew :app:exportLibraryDefinitions --console=plain
+
       - name: Build Release APK
-        run: ./gradlew assembleRelease
+        run: ./gradlew assembleRelease --console=plain
         env:
           GRADLE_OPTS: "-Dorg.gradle.jvmargs='-Xmx4g -XX:MaxMetaspaceSize=1g'"
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Build Debug APK (Optional)
         if: github.event.inputs.include_debug == 'true'
@@ -213,7 +244,16 @@ jobs:
           echo "Release assets:"
           ls -la release-assets/
 
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: llyfr-release
+          path: release-assets/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Create Git Tag
+        if: github.event.inputs.dry_run != 'true'
         env:
           TAG_NAME: v${{ steps.version_info.outputs.version_name }}-build${{ steps.version_info.outputs.version_code }}
         run: |
@@ -231,6 +271,7 @@ jobs:
           echo "Created and pushed tag: $TAG_NAME"
 
       - name: Create GitHub Release
+        if: github.event.inputs.dry_run != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           TAG_NAME: v${{ steps.version_info.outputs.version_name }}-build${{ steps.version_info.outputs.version_code }}

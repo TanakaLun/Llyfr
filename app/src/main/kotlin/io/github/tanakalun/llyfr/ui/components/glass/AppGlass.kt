@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
@@ -98,6 +99,20 @@ fun rememberSurfaceBackdrop(): LayerBackdrop? {
     }
 }
 
+/**
+ * 非折叠顶栏必须把 [ScrollBehavior] 的收缩上限钉到 0。
+ * 否则 [MiuixScrollBehavior] 会把滚动手势当作“折叠顶栏”吞掉，列表完全滚不动。
+ */
+@Composable
+fun PinScrollBehaviorToRest(scrollBehavior: ScrollBehavior?) {
+    SideEffect {
+        scrollBehavior?.state?.let { state ->
+            if (state.heightOffsetLimit != 0f) state.heightOffsetLimit = 0f
+            if (state.heightOffset != 0f) state.heightOffset = 0f
+        }
+    }
+}
+
 /** 顶栏：glass 模式用 GlassTopAppBar，miuix blur 沿用 BlurredBar，无质感时用纯色。 */
 @Composable
 fun AppTopAppBar(
@@ -112,6 +127,7 @@ fun AppTopAppBar(
     bottomContent: @Composable () -> Unit = {},
 ) {
     val surfaceColor = MiuixTheme.colorScheme.surface
+    if (!large) PinScrollBehaviorToRest(scrollBehavior)
     when {
         isGlassEffectActive() -> {
             if (large) {
@@ -135,6 +151,7 @@ fun AppTopAppBar(
                     modifier = modifier,
                     expandable = false,
                     backdrop = backdrop,
+                    scrollBehavior = scrollBehavior,
                     style = GlassDefaults.style(isInDarkTheme()),
                     defaultWindowInsetsPadding = defaultWindowInsetsPadding,
                     navigationIcon = navigationIcon,
@@ -164,6 +181,7 @@ fun AppTopAppBar(
                         title = title,
                         modifier = modifier,
                         color = barColor,
+                        scrollBehavior = scrollBehavior,
                         defaultWindowInsetsPadding = defaultWindowInsetsPadding,
                         navigationIcon = navigationIcon,
                         actions = actions,

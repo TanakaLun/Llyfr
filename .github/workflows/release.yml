@@ -114,54 +114,29 @@ jobs:
 
       - name: Generate Release Notes
         id: release-notes
+        shell: bash
         run: |
-          if [[ -n "${{ github.event.inputs.custom_release_notes }}" ]]; then
-            NOTES="${{ github.event.inputs.custom_release_notes }}"
-          else
-            LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-            
+          set -euo pipefail
+          NOTES="${{ github.event.inputs.custom_release_notes }}"
+          if [[ -z "$NOTES" ]]; then
+            LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
             if [[ -n "$LATEST_TAG" ]]; then
-              echo "Generating changes since $LATEST_TAG..."
-              CHANGES=$(git log --pretty=format:"* %s (%h) by %an" ${LATEST_TAG}..HEAD)
-              COMMITS_COUNT=$(git rev-list --count ${LATEST_TAG}..HEAD)
-              COMMIT_RANGE="${LATEST_TAG}..HEAD"
+              RANGE="${LATEST_TAG}..HEAD"
             else
-              echo "No previous tag found, using all commits..."
-              CHANGES=$(git log --pretty=format:"* %s (%h) by %an" HEAD)
-              COMMITS_COUNT=$(git rev-list --count HEAD)
-              COMMIT_RANGE="all commits"
+              RANGE="HEAD"
             fi
-            
-            PRS=$(git log --grep="Merge pull request" --pretty=format:"* %s" | sed -E 's/Merge pull request #([0-9]+).*from.*/  * PR #\1/g')
-            
-            cat > release_notes.md << EOF
-            
-            ${{ github.event.inputs.include_debug == 'true' && '* Debug APK: 包含调试信息，适用于开发测试' || '* Release APK: 正式版本，已签名优化' }}
-            
-            
-            ${{ github.event.inputs.include_debug == 'true' && '包括 Debug 和 Release 两种构建变体' || 'Release 构建版本' }}
-            
-            ${CHANGES:-* 无新提交}
-            
-            ${PRS:-* 无 PR 合并}
-            
-            * 版本代码: ${{ steps.version_info.outputs.version_code }}
-            * 版本名称: ${{ steps.version_info.outputs.version_name }}
-            * 构建日期: $(date +'%Y-%m-%d %H:%M:%S')
-            * 触发方式: 手动 Release 构建
-            * 提交范围: ${COMMIT_RANGE}
-            * 构建 ID: ${{ github.run_id }}
-            
-            ---
-            *由 GitHub Actions 自动构建*
-            EOF
-            
-            NOTES=$(cat release_notes.md)
+            CHANGES=$(git log --pretty=format:'* %s (%h)' "$RANGE" || true)
+            NOTES=$(printf '* Release APK\n\n%s\n\n* Version code: %s\n* Version name: %s\n* Build: %s\n' \
+              "${CHANGES:-* no changes}" \
+              "${{ steps.version_info.outputs.version_code }}" \
+              "${{ steps.version_info.outputs.version_name }}" \
+              "${{ github.run_id }}")
           fi
-          
-          echo "notes<<EOF" >> $GITHUB_OUTPUT
-          echo "$NOTES" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            echo "notes<<EOF_NOTES"
+            echo "$NOTES"
+            echo "EOF_NOTES"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Modify Gradle Build File
         run: |
@@ -275,15 +250,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG_NAME: v${{ steps.version_info.outputs.version_name }}-build${{ steps.version_info.outputs.version_code }}
+          RELEASE_NOTES: ${{ steps.release-notes.outputs.notes }}
+          RELEASE_TITLE: ${{ steps.generate-title.outputs.release_title }}
         run: |
           echo "Creating release: $TAG_NAME"
-          
+
           RELEASE_ARGS=(
             --repo "${{ github.repository }}"
             --tag "$TAG_NAME"
             --target "${{ github.sha }}"
-            --title "${{ steps.generate-title.outputs.release_title }}"
-            --notes "${{ steps.release-notes.outputs.notes }}"
+            --title "$RELEASE_TITLE"
+            --notes "$RELEASE_NOTES"
           )
           
           if [[ "${{ github.event.inputs.prerelease }}" == "true" ]]; then
